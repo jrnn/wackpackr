@@ -15,3 +15,8 @@ Documentation
 -------------
 
 - (coming sometime soon)
+
+See it in action
+----------------
+
+- wackpackr runs on [heroku](https://wackpackr.herokuapp.com/)
