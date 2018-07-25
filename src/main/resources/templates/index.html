@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th = "http://www.thymeleaf.org">
+
+  <head>
+    <title>wackpackr</title>
+    <meta charset = "UTF-8"/>
+    <meta
+      content = "width=device-width, initial-scale=1.0, shrink-to-fit=no"
+      name = "viewport"
+    />
+  </head>
+
+  <body>
+    <div style = "margin : 0rem 5rem;">
+      <h1>~~ wackpackr ~~</h1>
+      <em>wackpackr can't pack for shit!</em>
+      <p>
+        Right now you can just type in some text and wackpackr will compress it
+        with a makeshift Huffman implementation, then show you the original and
+        compressed binaries...
+      </p>
+      <form
+        th:action = "@{/}"
+        th:method = "POST"
+      >
+        <textarea
+          name = "text"
+          placeholder = "Type your wack shit here, hefe"
+          rows = "10"
+          style = "width : 100%;"
+        ></textarea><br/>
+        <input
+          type = "submit"
+          value = "LET'S GO"
+        />
+      </form>
+      <table>
+        <tbody>
+          <tr>
+            <td>Original text:</td>
+            <td th:text = "${text}"></td>
+          </tr>
+          <tr>
+            <td>Original text in binary:</td>
+            <td th:text = "${binary_original}"></td>
+          </tr>
+          <tr>
+            <td>Compressed text in binary:</td>
+            <td th:text = "${binary_compressed}"></td>
+          </tr>
+          <tr>
+            <td>Compression rate:</td>
+            <td th:text = "${compression_rate}"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+
+</html>
