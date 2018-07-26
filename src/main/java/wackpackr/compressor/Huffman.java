@@ -2,11 +2,13 @@ package wackpackr.compressor;
 
 import java.nio.charset.StandardCharsets;
 import java.util.PriorityQueue;
+import wackpackr.io.MockBitStream;
 import wackpackr.util.HuffNode;
 
 /**
  * First-cut implementation of Huffman algorithm that can only translate Strings to Huffman code.
- * Byproduct Huffman tree is not stored anywhere. Cannot yet do decompression.
+ * Decompression not yet supported. The tree is stored at head of compressed binary, but without any
+ * metadata or other identifiers to help in unpacking.
  *
  * @author Juho Juurinen
  */
@@ -28,30 +30,31 @@ public class Huffman
                 heap.offer(new HuffNode(i, frequencies[i]));
 
         // form Huffman tree
-        HuffNode left, right;
         while (heap.size() > 1)
-        {
-            left = heap.poll();
-            right = heap.poll();
-            heap.offer(new HuffNode(left, right));
-        }
+            heap.offer(new HuffNode(
+                    heap.poll(),
+                    heap.poll()
+            ));
+        HuffNode root = heap.poll();
 
         // build translation table (byte <--> Huffman code) by traversing the tree
         String[] codes = new String[256];
-        writeCodes(codes, heap.poll(), "");
+        writeCodes(codes, root, "");
+
+        // write tree at head of compressed binary
+        MockBitStream bs = new MockBitStream("");
+        writeTree(root, bs);
 
         // finally, translate input to compressed form
-        StringBuilder sb = new StringBuilder();
         for (byte b : bytes)
-            sb.append(codes[b + 128]);
+            bs.write(codes[b + 128]);
 
-        return sb.toString();
+        // return compressed binary, which now includes both tree and data
+        return bs.toString();
     }
 
     private static void writeCodes(String[] codes, HuffNode node, String code)
     {
-        if (node == null)
-            return;
         if (node.isLeaf())
             codes[node.value] = code;
         else
@@ -59,5 +62,25 @@ public class Huffman
             writeCodes(codes, node.left, code + "0");
             writeCodes(codes, node.right, code + "1");
         }
+    }
+
+    private static void writeTree(HuffNode node, MockBitStream bs)
+    {
+        if (node.isLeaf())
+            bs.write("1" + Integer.toBinaryString(node.value + 256).substring(1));
+        else
+        {
+            bs.write("0");
+            writeTree(node.left, bs);
+            writeTree(node.right, bs);
+        }
+    }
+
+    private static HuffNode readTree(MockBitStream bs)
+    {
+        if (bs.nextBit() == 1)
+            return new HuffNode(bs.nextByte(), 0);
+        else
+            return new HuffNode(readTree(bs), readTree(bs));
     }
 }

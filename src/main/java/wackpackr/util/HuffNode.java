@@ -1,5 +1,7 @@
 package wackpackr.util;
 
+import java.util.ArrayDeque;
+
 /**
  * Node in a Huffman code tree. Ordered by weight from lightest to heaviest.
  *
@@ -51,5 +53,40 @@ public class HuffNode implements Comparable<HuffNode>
     public int compareTo(HuffNode o)
     {
         return Long.compare(weight, o.weight);
+    }
+
+
+    /* --- BELOW JUST SOME TEMPORARY BULLSHIT METHODS FOR DEBUGGING PURPOSES --- */
+
+    
+    @Override
+    public String toString()
+    {
+        return "[" + value + ", " + weight + "]";
+    }
+
+    public static void printTree(HuffNode root)
+    {
+        HuffNode node;
+        ArrayDeque<HuffNode> P = new ArrayDeque<>();
+        ArrayDeque<HuffNode> Q = new ArrayDeque<>();
+        P.offer(root);
+        while (!P.isEmpty())
+        {
+            System.out.print("      ");
+            while (!P.isEmpty())
+                Q.offer(P.poll());
+            while (!Q.isEmpty())
+            {
+                node = Q.poll();
+                System.out.print("  " + node);
+                if (!node.isLeaf())
+                {
+                    P.offer(node.left);
+                    P.offer(node.right);
+                }
+            }
+            System.out.println();
+        }
     }
 }
