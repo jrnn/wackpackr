@@ -1,4 +1,4 @@
-package wackpackr.compressor;
+package wackpackr.core;
 
 import java.nio.charset.StandardCharsets;
 import java.util.PriorityQueue;
