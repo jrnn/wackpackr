@@ -1,9 +1,9 @@
 package wackpackr.core;
 
 import java.nio.charset.StandardCharsets;
-import java.util.PriorityQueue;
 import wackpackr.io.MockBitStream;
 import wackpackr.util.HuffNode;
+import wackpackr.util.MinHeap;
 
 /**
  * First-cut implementation of Huffman algorithm that can only translate Strings to Huffman code.
@@ -24,18 +24,19 @@ public class Huffman
             frequencies[b + 128]++;
 
         // create a leaf node for each encountered byte, and throw it in the heap
-        PriorityQueue<HuffNode> heap = new PriorityQueue<>();
+//        PriorityQueue<HuffNode> heap = new PriorityQueue<>();
+        MinHeap<HuffNode> heap = new MinHeap<>();
         for (int i = 0; i < 256; i++)
             if (frequencies[i] > 0)
-                heap.offer(new HuffNode(i, frequencies[i]));
+                heap.add(new HuffNode(i, frequencies[i]));
 
         // form Huffman tree
         while (heap.size() > 1)
-            heap.offer(new HuffNode(
-                    heap.poll(),
-                    heap.poll()
+            heap.add(new HuffNode(
+                    heap.pop(),
+                    heap.pop()
             ));
-        HuffNode root = heap.poll();
+        HuffNode root = heap.pop();
 
         // build translation table (byte <--> Huffman code) by traversing the tree
         String[] codes = new String[256];
