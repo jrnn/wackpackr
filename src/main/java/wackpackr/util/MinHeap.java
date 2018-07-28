@@ -17,8 +17,6 @@ import java.util.NoSuchElementException;
  * array capacity is expanded or decreased at certain threshold "fill rates", however so that adding
  * elements is still possible in amortized O(log n) time.
  *
- * Not thread-safe.
- *
  * @author Juho Juurinen
  * @param <E> the class of elements held in a heap instance
  */
@@ -116,7 +114,9 @@ public class MinHeap<E>
         return e;
     }
 
-    /* Private helper methods below, no comments or description given. */
+
+    /* --- Private helper methods below, no comments or description given. --- */
+
 
     private void heapify(int i)
     {
@@ -179,6 +179,6 @@ public class MinHeap<E>
     private boolean isLessThan(Object smaller, Object bigger)
     {
         Comparable<? super E> c = (Comparable<? super E>) smaller;
-        return c.compareTo((E) bigger) == -1;
+        return c.compareTo((E) bigger) < 0;
     }
 }

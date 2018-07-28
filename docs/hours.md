@@ -7,3 +7,4 @@
 | 25.7. | 4 | 8 | first cut Huffman compress (works only on Strings) |
 | 26.7. | 4 | 12 | methods for parsing Huffman tree to/from 1s and 0s |
 | 28.7. | 3 | 15 | replace java.util.PriorityQueue with DYI min-heap |
+| 28.7. | 2 | 17 | min-heap unit testing |
