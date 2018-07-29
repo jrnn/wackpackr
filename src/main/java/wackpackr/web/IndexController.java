@@ -1,5 +1,7 @@
 package wackpackr.web;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,8 +38,21 @@ public class IndexController
     public String compress(@RequestParam String input)
     {
         INPUT_TEXT = input;
-        BINARY_ORIGINAL = StringIO.toBinaryString(input);
-        BINARY_COMPRESSED = Huffman.compress(input);
+
+        try
+        {
+            byte[] original = input.getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = Huffman.compress(original);
+            BINARY_ORIGINAL = StringIO.toBinaryString(original);
+            BINARY_COMPRESSED = StringIO.toBinaryString(bytes);
+        }
+        catch (Exception e)
+        {
+            INPUT_TEXT = "Something went wrong, fool. Check them logs.";
+            BINARY_ORIGINAL = "n/a";
+            BINARY_COMPRESSED = "n/a";
+            e.printStackTrace();
+        }
 
         return "redirect:/";
     }
@@ -47,7 +62,9 @@ public class IndexController
     {
         try
         {
-            DECOMPRESSED_TEXT = Huffman.decompress(input.replaceAll("\\s+", ""));
+            // below some ABSOLUTE BULLSHIT, only a temporary measure !!!
+            byte[] bytes = new BigInteger(input.replaceAll("\\s+", ""), 2).toByteArray();
+            DECOMPRESSED_TEXT = new String(Huffman.decompress(bytes), StandardCharsets.UTF_8);
         }
         catch (Exception e)
         {

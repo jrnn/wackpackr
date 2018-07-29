@@ -3,29 +3,42 @@ package wackpackr.io;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
- * Wrapper for InputStream that allows reading one bit at a time, while also offering a method for
- * reading byte-size chunks irrespective of byte boundaries.
+ * Combined wrapper for Input- and OutputStreams, that allows reading and writing one bit at a time,
+ * while also offering the same methods for byte-size chunks irrespective of byte boundaries.
  *
- * TO-DO : Bake in a similar wrapper for OutputStream into the same class(?)
+ * TO-DO : More comprehensive comments ...
  *
  * @author Juho Juurinen
  */
 public class BinaryIO implements AutoCloseable
 {
-    private InputStream in;
+    private final InputStream in;
+    private final OutputStream out;
+
     private int bitsIn = 0;
+    private int bitsOut = 0;
     private int bufferIn = -1;
+    private int bufferOut = 0;
 
-    //private OutputStream out;
-    //private int bitsOut = 0;
-    //private int bufferOut = 0;
-
-    public void setInputStream(InputStream is) throws IOException
+    public BinaryIO(InputStream in)
     {
-        if (in == null)
-            in = is;
+        this.in = in;
+        this.out = null;
+    }
+
+    public BinaryIO(OutputStream out)
+    {
+        this.in = null;
+        this.out = out;
+    }
+
+    public BinaryIO(InputStream in, OutputStream out)
+    {
+        this.in = in;
+        this.out = out;
     }
 
     /**
@@ -67,7 +80,7 @@ public class BinaryIO implements AutoCloseable
         if (bufferIn == -1)
             throw new EOFException();
 
-        return (prev << (8 - bitsIn)) | (bufferIn >> bitsIn);
+        return ((prev << (8 - bitsIn)) | (bufferIn >> bitsIn)) % 256;  //  STILL SOMETHING FISHY HERE
     }
 
     /**
@@ -86,13 +99,50 @@ public class BinaryIO implements AutoCloseable
                 readByte());
     }
 
+    public void writeBit(boolean b) throws Exception
+    {
+        bufferOut = (bufferOut << 1) | (b ? 1 : 0);
+        bitsOut++;
+
+        if (bitsOut == 8)
+        {
+            out.write(bufferOut);
+            bitsOut = 0;
+            bufferOut = 0;
+        }
+    }
+
+    public void writeByte(int b) throws Exception
+    {
+        assert 0 <= b && b < 256;
+
+        if (bitsOut == 0)
+            out.write(b);
+        else
+            for (int i = 7; i >= 0; i--)
+                writeBit(((b >> i) & 1) == 1);
+    }
+
+    public void writeLong(long l) throws Exception
+    {
+        byte[] bs = new byte[4];
+
+        for (int i = 3; i >= 0; i--)
+        {
+            bs[i] = (byte) (l & 0xFF);
+            l >>= 8;
+        }
+        for (byte b : bs)
+            writeByte(b);
+    }
+
     @Override
     public void close() throws IOException
     {
         if (in != null)
             in.close();
 
-        bitsIn = 0;
-        bufferIn = -1;
+        if (out != null)
+            out.close();
     }
 }

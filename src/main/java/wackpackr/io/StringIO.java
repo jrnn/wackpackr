@@ -1,7 +1,5 @@
 package wackpackr.io;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  *  This just some temporary bullshit, won't bother to comment.
  * 
@@ -9,12 +7,12 @@ import java.nio.charset.StandardCharsets;
  */
 public class StringIO
 {
-    public static String toBinaryString(String s)
+    public static String toBinaryString(byte[] bytes)
     {
         StringBuilder sb = new StringBuilder();
 
         // hack to deal with "signed" property of Java bytes
-        for (byte b : s.getBytes(StandardCharsets.UTF_8))
+        for (byte b : bytes)
             sb.append(Integer.toBinaryString((b & 0xFF) + 0x100).substring(1));
 
         return sb.toString();

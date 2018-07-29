@@ -1,19 +1,15 @@
 package wackpackr.core;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import wackpackr.io.BinaryIO;
-import wackpackr.io.MockBitStream;
 import wackpackr.util.HuffNode;
 import wackpackr.util.MinHeap;
 
 /**
- * First-cut implementation of Huffman algorithm that can only work on Strings. Next step is to make
- * this work directly with 1s and 0s. The tree storing the bit mappings is encoded at head of
- * compressed binary.
+ * Simplistic implementation of Huffman algorithm. The tree storing the bit mappings is encoded at
+ * head of compressed binary.
  *
  * Class is quite bloated with some fugly big methods. Needs some serious restructuring.
  *
@@ -21,13 +17,11 @@ import wackpackr.util.MinHeap;
  */
 public class Huffman
 {
-    public static String compress(String input)
+    public static byte[] compress(byte[] input) throws Exception
     {
-        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
-
         // calculate frequencies
         long[] frequencies = new long[256];
-        for (byte b : bytes)
+        for (byte b : input)
             frequencies[b + 128]++;
 
         // create a leaf node for each encountered byte, and throw it in the heap
@@ -52,35 +46,36 @@ public class Huffman
         writeCodes(codes, root, "");
 
         // initialize new binary stream with "ID tag" at head position
-        MockBitStream bs = new MockBitStream("");
-        writeTag(bs);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        BinaryIO io = new BinaryIO(out);
+        writeTag(io);
 
         // write tree at head of compressed binary
-        writeTree(root, bs);
+        writeTree(root, io);
 
         // append path to pseudo-eof node after encoded tree
-        bs.write(codes[256]);
+        encode(codes[256], io);
 
         // read input once more, and translate it to compressed form
-        for (byte b : bytes)
-            bs.write(codes[b + 128]);
+        for (byte b : input)
+            encode(codes[b + 128], io);
 
         // finally, explicitly add pseudo-eof at the end + pad with zeroes (temporary, I hope...)
-        bs.write(codes[256]);
-        while (bs.toString().length() % 8 != 0)
-            bs.write("0");
+        encode(codes[256], io);
+        io.writeByte(0);
+
+        byte[] bytes = out.toByteArray();
+        io.close();
 
         // return compressed binary, which now includes both tree and data
-        return bs.toString();
+        return bytes;
     }
 
-    public static String decompress(String input) throws Exception
+    public static byte[] decompress(byte[] input) throws Exception
     {
-        byte[] bs = new BigInteger(input, 2).toByteArray(); // <--- this is ABSOLUTE BULLSHIT, only a temporary measure !!!
-        InputStream is = new ByteArrayInputStream(bs);
-        BinaryIO io = new BinaryIO();
-        io.setInputStream(is);
-        MockBitStream out = new MockBitStream("");
+        ByteArrayInputStream in = new ByteArrayInputStream(input);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        BinaryIO io = new BinaryIO(in, out);
 
         // check 32-bit identifier at file head -- throw exception if mismatch
         if (!checkTag(io))
@@ -103,25 +98,27 @@ public class Huffman
             if (node.value == 256)  //  eof
                 break;
 
-            out.write(Integer.toBinaryString(node.value % 256 + 256).substring(1));
+            io.writeByte(node.value - 128);
         }
 
-        // convert decompressed binary back to byte array
-        int n = out.toString().length() / 8;
-        byte[] bytes = new byte[n];
-        for (int i = 0; i < n; i++)
-            bytes[i] = (byte) (out.nextByte() - 128);
+        byte[] bytes = out.toByteArray();
+        io.close();  // can be replaced with smarter code organization? (try-with block)
 
-        io.close();  // these can be replaced with smarter code organization
-        is.close();  // (doing IO inside a try-with block)
-
-        // return ASCII
-        return new String(bytes, StandardCharsets.UTF_8);
+        return bytes;
     }
 
 
     /* --- Most of the stuff below this line probably belongs in separate classes? --- */
 
+
+    private static void encode(String code, BinaryIO io) throws Exception
+    {
+        for (char c : code.toCharArray())
+        {
+            assert c == '0' || c == '1';
+            io.writeBit(c == '1');
+        }
+    }
 
     private static void writeCodes(String[] codes, HuffNode node, String code)
     {
@@ -134,22 +131,25 @@ public class Huffman
         }
     }
 
-    private static void writeTree(HuffNode node, MockBitStream bs)
+    private static void writeTree(HuffNode node, BinaryIO io) throws Exception
     {
         if (node.isLeaf())
-            bs.write("1" + Integer.toBinaryString(node.value % 256 + 256).substring(1));
+        {
+            io.writeBit(true);
+            io.writeByte((byte) (node.value - 128));
+        }
         else
         {
-            bs.write("0");
-            writeTree(node.left, bs);
-            writeTree(node.right, bs);
+            io.writeBit(false);
+            writeTree(node.left, io);
+            writeTree(node.right, io);
         }
     }
 
     private static HuffNode readTree(BinaryIO io) throws Exception
     {
         return io.readBit()
-                ? new HuffNode(io.readByte(), 0)
+                ? new HuffNode(io.readByte() + 128, 0)
                 : new HuffNode(readTree(io), readTree(io));
     }
 
@@ -165,12 +165,9 @@ public class Huffman
 
     private static final long TAG = 0x07031986;
 
-    private static void writeTag(MockBitStream bs)
+    private static void writeTag(BinaryIO io) throws Exception
     {
-        String s = Long.toBinaryString(TAG);
-        while (s.length() < 32)
-            s = "0" + s;
-        bs.write(s);
+        io.writeLong(TAG);
     }
 
     private static boolean checkTag(BinaryIO io) throws Exception
