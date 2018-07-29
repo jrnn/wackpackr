@@ -35,6 +35,17 @@ public class MockBitStream
         return next(8);
     }
 
+    public long nextLong()
+    {
+        if (s.length() < 32)
+            throw new ArrayIndexOutOfBoundsException();
+
+        long next = Long.parseLong(s.substring(0, 32), 2);
+        s = s.substring(32);
+
+        return next;
+    }
+
     @Override
     public String toString()
     {

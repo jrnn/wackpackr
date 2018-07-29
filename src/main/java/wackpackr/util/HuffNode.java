@@ -9,7 +9,7 @@ import java.util.ArrayDeque;
  */
 public class HuffNode implements Comparable<HuffNode>
 {
-    public final int value;
+    public int value;
     public final long weight;
     public final HuffNode left;
     public final HuffNode right;
@@ -46,7 +46,10 @@ public class HuffNode implements Comparable<HuffNode>
 
     public boolean isLeaf()
     {
-        return value > -1;
+        if (value < 0)
+            return false;
+
+        return (left == null && right == null);
     }
 
     @Override
