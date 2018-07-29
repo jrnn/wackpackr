@@ -52,6 +52,7 @@ public class IndexController
         catch (Exception e)
         {
             DECOMPRESSED_TEXT = "Something went wrong, fool. That ain't Huffman compressed binary, fool.";
+            e.printStackTrace();
         }
 
         return "redirect:/";

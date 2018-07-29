@@ -1,7 +1,11 @@
 package wackpackr.core;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import wackpackr.io.BinaryIO;
 import wackpackr.io.MockBitStream;
 import wackpackr.util.HuffNode;
 import wackpackr.util.MinHeap;
@@ -61,25 +65,30 @@ public class Huffman
         for (byte b : bytes)
             bs.write(codes[b + 128]);
 
-        // finally, explicitly add pseudo-eof at the end
+        // finally, explicitly add pseudo-eof at the end + pad with zeroes (temporary, I hope...)
         bs.write(codes[256]);
+        while (bs.toString().length() % 8 != 0)
+            bs.write("0");
 
         // return compressed binary, which now includes both tree and data
         return bs.toString();
     }
 
-    public static String decompress(String input) throws IOException
+    public static String decompress(String input) throws Exception
     {
-        MockBitStream in = new MockBitStream(input);
+        byte[] bs = new BigInteger(input, 2).toByteArray(); // <--- this is ABSOLUTE BULLSHIT, only a temporary measure !!!
+        InputStream is = new ByteArrayInputStream(bs);
+        BinaryIO io = new BinaryIO();
+        io.setInputStream(is);
         MockBitStream out = new MockBitStream("");
 
         // check 32-bit identifier at file head -- throw exception if mismatch
-        if (!checkTag(in))
+        if (!checkTag(io))
             throw new IOException("Fool, this ain't a Huffman compressed file");
 
         // decode Huffman tree from header, incl. pseudo-eof node path
-        HuffNode root = Huffman.readTree(in);
-        overwriteEof(root, in);
+        HuffNode root = Huffman.readTree(io);
+        overwriteEof(root, io);
 
         // read input until eof marker, translating to decompressed form on the go
         HuffNode node;
@@ -87,9 +96,9 @@ public class Huffman
         {
             node = root;
             while (!node.isLeaf())
-                node = (in.nextBit() == 0)
-                        ? node.left
-                        : node.right;
+                node = io.readBit()
+                        ? node.right
+                        : node.left;
 
             if (node.value == 256)  //  eof
                 break;
@@ -102,6 +111,9 @@ public class Huffman
         byte[] bytes = new byte[n];
         for (int i = 0; i < n; i++)
             bytes[i] = (byte) (out.nextByte() - 128);
+
+        io.close();  // these can be replaced with smarter code organization
+        is.close();  // (doing IO inside a try-with block)
 
         // return ASCII
         return new String(bytes, StandardCharsets.UTF_8);
@@ -134,19 +146,19 @@ public class Huffman
         }
     }
 
-    private static HuffNode readTree(MockBitStream bs)
+    private static HuffNode readTree(BinaryIO io) throws Exception
     {
-        return (bs.nextBit() == 1)
-                ? new HuffNode(bs.nextByte(), 0)
-                : new HuffNode(readTree(bs), readTree(bs));
+        return io.readBit()
+                ? new HuffNode(io.readByte(), 0)
+                : new HuffNode(readTree(io), readTree(io));
     }
 
-    private static void overwriteEof(HuffNode node, MockBitStream bs)
+    private static void overwriteEof(HuffNode node, BinaryIO io) throws Exception
     {
         while (!node.isLeaf())
-            node = (bs.nextBit() == 0)
-                    ? node.left
-                    : node.right;
+            node = io.readBit()
+                    ? node.right
+                    : node.left;
 
         node.value = 256;
     }
@@ -161,9 +173,9 @@ public class Huffman
         bs.write(s);
     }
 
-    private static boolean checkTag(MockBitStream bs)
+    private static boolean checkTag(BinaryIO io) throws Exception
     {
-        long tag = bs.nextLong();
+        long tag = io.readLong();
         return (tag == TAG);
     }
 }
