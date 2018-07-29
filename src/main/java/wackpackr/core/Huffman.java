@@ -1,13 +1,15 @@
 package wackpackr.core;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import wackpackr.io.MockBitStream;
 import wackpackr.util.HuffNode;
 import wackpackr.util.MinHeap;
 
 /**
- * First-cut implementation of Huffman algorithm that can only work on Strings. Decompression not
- * yet supported. The tree storing the bit mappings is encoded at head of compressed binary.
+ * First-cut implementation of Huffman algorithm that can only work on Strings. Next step is to make
+ * this work directly with 1s and 0s. The tree storing the bit mappings is encoded at head of
+ * compressed binary.
  *
  * Class is quite bloated with some fugly big methods. Needs some serious restructuring.
  *
@@ -66,6 +68,45 @@ public class Huffman
         return bs.toString();
     }
 
+    public static String decompress(String input) throws IOException
+    {
+        MockBitStream in = new MockBitStream(input);
+        MockBitStream out = new MockBitStream("");
+
+        // check 32-bit identifier at file head -- throw exception if mismatch
+        if (!checkTag(in))
+            throw new IOException("Fool, this ain't a Huffman compressed file");
+
+        // decode Huffman tree from header, incl. pseudo-eof node path
+        HuffNode root = Huffman.readTree(in);
+        overwriteEof(root, in);
+
+        // read input until eof marker, translating to decompressed form on the go
+        HuffNode node;
+        while (true)
+        {
+            node = root;
+            while (!node.isLeaf())
+                node = (in.nextBit() == 0)
+                        ? node.left
+                        : node.right;
+
+            if (node.value == 256)  //  eof
+                break;
+
+            out.write(Integer.toBinaryString(node.value % 256 + 256).substring(1));
+        }
+
+        // convert decompressed binary back to byte array
+        int n = out.toString().length() / 8;
+        byte[] bytes = new byte[n];
+        for (int i = 0; i < n; i++)
+            bytes[i] = (byte) (out.nextByte() - 128);
+
+        // return ASCII
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
 
     /* --- Most of the stuff below this line probably belongs in separate classes? --- */
 
@@ -93,14 +134,14 @@ public class Huffman
         }
     }
 
-    public static HuffNode readTree(MockBitStream bs)
+    private static HuffNode readTree(MockBitStream bs)
     {
         return (bs.nextBit() == 1)
                 ? new HuffNode(bs.nextByte(), 0)
                 : new HuffNode(readTree(bs), readTree(bs));
     }
 
-    public static void overwriteEof(HuffNode node, MockBitStream bs)
+    private static void overwriteEof(HuffNode node, MockBitStream bs)
     {
         while (!node.isLeaf())
             node = (bs.nextBit() == 0)
@@ -120,7 +161,7 @@ public class Huffman
         bs.write(s);
     }
 
-    public static boolean checkTag(MockBitStream bs)
+    private static boolean checkTag(MockBitStream bs)
     {
         long tag = bs.nextLong();
         return (tag == TAG);

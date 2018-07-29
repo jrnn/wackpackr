@@ -17,22 +17,27 @@
       <p>
         Right now you can just type in some text and wackpackr will compress it
         with a makeshift Huffman implementation, then show you the original and
-        compressed binaries... The compressed binary contains both the Huffman
-        tree and the encoded data, but no metadata or other identifiers.
+        compressed binaries... The compressed binary contains both the encoded
+        data and the Huffman tree for decompressing it.
       </p>
+      <p>
+        You can also plug in a compressed binary and try decompressing it back
+        to text.
+      </p>
+      <h4>Huffman compress</h4>
       <form
-        th:action = "@{/}"
+        th:action = "@{/compress}"
         th:method = "POST"
       >
         <textarea
-          name = "text"
+          name = "input"
           placeholder = "Type your wack shit here, hefe"
           rows = "10"
           style = "width : 100%;"
         ></textarea><br/>
         <input
           type = "submit"
-          value = "LET'S GO"
+          value = "COMPRESS"
         />
       </form>
       <table>
@@ -52,6 +57,30 @@
           <tr>
             <td>Compression rate:</td>
             <td th:text = "${compression_rate}"></td>
+          </tr>
+        </tbody>
+      </table>
+      <h4>Huffman decompress</h4>
+      <form
+        th:action = "@{/decompress}"
+        th:method = "POST"
+      >
+        <textarea
+          name = "input"
+          placeholder = "Plug in a compressed binary, bawse"
+          rows = "5"
+          style = "width : 100%;"
+        ></textarea><br/>
+        <input
+          type = "submit"
+          value = "DECOMPRESS"
+        />
+      </form>
+      <table>
+        <tbody>
+          <tr>
+            <td>Decompressed text:</td>
+            <td th:text = "${decompressed}"></td>
           </tr>
         </tbody>
       </table>

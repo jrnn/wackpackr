@@ -9,3 +9,5 @@
 | 28.7. | 3 | 15 | replace java.util.PriorityQueue with DYI min-heap |
 | 28.7. | 2 | 17 | min-heap unit testing |
 | 29.7. | 2 | 19 | figuring out how to encode pseudo-EoF node in Huffman tree without giving up a slot in the 0-255 byte range |
+| 29.7. | 1 | 20 | first cut Huffman decompress (only Strings...) |
+
