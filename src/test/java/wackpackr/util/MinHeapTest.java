@@ -95,9 +95,11 @@ public class MinHeapTest
     {
         Integer[] is = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610};
         String[] ss = {"all", "are", "base", "belong", "to", "us", "your"};
+
+        byte b = 0;
         HuffNode[] ns = {
-            new HuffNode(0, 1), new HuffNode(0, 2), new HuffNode(0, 3), new HuffNode(0, 5),
-            new HuffNode(0, 8), new HuffNode(0, 13), new HuffNode(0, 21), new HuffNode(0, 34)
+            new HuffNode(b, 1), new HuffNode(b, 2), new HuffNode(b, 3), new HuffNode(b, 5),
+            new HuffNode(b, 8), new HuffNode(b, 13), new HuffNode(b, 21), new HuffNode(b, 34)
         };
 
         addRandomlyThenPopAll(Integer.class, is);

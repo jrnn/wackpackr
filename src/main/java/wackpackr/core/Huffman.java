@@ -26,12 +26,12 @@ public class Huffman
 
         // create a leaf node for each encountered byte, and throw it in the heap
         MinHeap<HuffNode> heap = new MinHeap<>();
-        for (int i = 0; i < 256; i++)
-            if (frequencies[i] > 0)
-                heap.add(new HuffNode(i, frequencies[i]));
+        for (int b = Byte.MIN_VALUE; b <= Byte.MAX_VALUE; b++)
+            if (frequencies[b + 128] > 0)
+                heap.add(new HuffNode((byte) b, frequencies[b + 128]));
 
         // add still node for pseudo-eof character
-        heap.add(new HuffNode(256, 0));
+        heap.add(new HuffNode());
 
         // form Huffman tree
         while (heap.size() > 1)
@@ -92,13 +92,13 @@ public class Huffman
             node = root;
             while (!node.isLeaf())
                 node = io.readBit()
-                        ? node.right
-                        : node.left;
+                        ? node.getRight()
+                        : node.getLeft();
 
-            if (node.value == 256)  //  eof
+            if (node.isEoF())
                 break;
 
-            io.writeByte(node.value - 128);
+            io.writeByte(node.getValue());
         }
 
         byte[] bytes = out.toByteArray();
@@ -122,12 +122,14 @@ public class Huffman
 
     private static void writeCodes(String[] codes, HuffNode node, String code)
     {
-        if (node.isLeaf())
-            codes[node.value] = code;
+        if (node.isEoF())
+            codes[256] = code;
+        else if (node.isLeaf())
+            codes[node.getValue() + 128] = code;
         else
         {
-            writeCodes(codes, node.left, code + "0");
-            writeCodes(codes, node.right, code + "1");
+            writeCodes(codes, node.getLeft(), code + "0");
+            writeCodes(codes, node.getRight(), code + "1");
         }
     }
 
@@ -136,20 +138,20 @@ public class Huffman
         if (node.isLeaf())
         {
             io.writeBit(true);
-            io.writeByte((byte) (node.value - 128));
+            io.writeByte(node.getValue());
         }
         else
         {
             io.writeBit(false);
-            writeTree(node.left, io);
-            writeTree(node.right, io);
+            writeTree(node.getLeft(), io);
+            writeTree(node.getRight(), io);
         }
     }
 
     private static HuffNode readTree(BinaryIO io) throws Exception
     {
         return io.readBit()
-                ? new HuffNode(io.readByte() + 128, 0)
+                ? new HuffNode((byte) io.readByte(), 0)
                 : new HuffNode(readTree(io), readTree(io));
     }
 
@@ -157,10 +159,10 @@ public class Huffman
     {
         while (!node.isLeaf())
             node = io.readBit()
-                    ? node.right
-                    : node.left;
+                    ? node.getRight()
+                    : node.getLeft();
 
-        node.value = 256;
+        node.setEoF();
     }
 
     private static final long TAG = 0x07031986;
