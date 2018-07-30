@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
-import wackpackr.util.MinHeap;
 
 /**
  * Simplistic implementation of Huffman algorithm. The tree storing the bit mappings is encoded at
@@ -19,27 +18,8 @@ public class Huffman
 {
     public static byte[] compress(byte[] input) throws Exception
     {
-        // calculate frequencies
-        long[] frequencies = new long[256];
-        for (byte b : input)
-            frequencies[b + 128]++;
-
-        // create a leaf node for each encountered byte, and throw it in the heap
-        MinHeap<HuffNode> heap = new MinHeap<>();
-        for (int b = Byte.MIN_VALUE; b <= Byte.MAX_VALUE; b++)
-            if (frequencies[b + 128] > 0)
-                heap.add(new HuffNode((byte) b, frequencies[b + 128]));
-
-        // add still node for pseudo-eof character
-        heap.add(new HuffNode());
-
-        // form Huffman tree
-        while (heap.size() > 1)
-            heap.add(new HuffNode(
-                    heap.pop(),
-                    heap.pop()
-            ));
-        HuffNode root = heap.pop();
+        // read through input and build huffman tree
+        HuffNode root = HuffTreeParser.buildTree(input);
 
         // build translation table (byte <--> Huffman code) by traversing the tree
         String[] codes = new String[257];
@@ -51,7 +31,7 @@ public class Huffman
         writeTag(io);
 
         // write tree at head of compressed binary
-        writeTree(root, io);
+        HuffTreeParser.encodeTree(root, io);
 
         // append path to pseudo-eof node after encoded tree
         encode(codes[256], io);
@@ -81,9 +61,8 @@ public class Huffman
         if (!checkTag(io))
             throw new IOException("Fool, this ain't a Huffman compressed file");
 
-        // decode Huffman tree from header, incl. pseudo-eof node path
-        HuffNode root = Huffman.readTree(io);
-        overwriteEof(root, io);
+        // decode Huffman tree from header
+        HuffNode root = HuffTreeParser.decodeTree(io);
 
         // read input until eof marker, translating to decompressed form on the go
         HuffNode node;
@@ -131,38 +110,6 @@ public class Huffman
             writeCodes(codes, node.getLeft(), code + "0");
             writeCodes(codes, node.getRight(), code + "1");
         }
-    }
-
-    private static void writeTree(HuffNode node, BinaryIO io) throws Exception
-    {
-        if (node.isLeaf())
-        {
-            io.writeBit(true);
-            io.writeByte(node.getValue());
-        }
-        else
-        {
-            io.writeBit(false);
-            writeTree(node.getLeft(), io);
-            writeTree(node.getRight(), io);
-        }
-    }
-
-    private static HuffNode readTree(BinaryIO io) throws Exception
-    {
-        return io.readBit()
-                ? new HuffNode((byte) io.readByte(), 0)
-                : new HuffNode(readTree(io), readTree(io));
-    }
-
-    private static void overwriteEof(HuffNode node, BinaryIO io) throws Exception
-    {
-        while (!node.isLeaf())
-            node = io.readBit()
-                    ? node.getRight()
-                    : node.getLeft();
-
-        node.setEoF();
     }
 
     private static final long TAG = 0x07031986;

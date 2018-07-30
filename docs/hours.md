@@ -11,5 +11,4 @@
 | 29.7. | 2 | 19 | figuring out how to encode pseudo-EoF node in Huffman tree without giving up a slot in the 0-255 byte range |
 | 29.7. | 1 | 20 | first cut Huffman decompress (only Strings...) |
 | 29.7. | 5 | 25 | extending Huffman to work more generally with binary data |
-| 30.7. | 1 | 26 | restructuring Huffman code |
-
+| 30.7. | 2 | 27 | restructuring Huffman code |
