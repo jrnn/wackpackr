@@ -17,12 +17,11 @@
       <p>
         Right now you can just type in some text and wackpackr will compress it
         with a makeshift Huffman implementation, then show you the original and
-        compressed binaries... The compressed binary contains both the encoded
-        data and the Huffman tree for decompressing it.
+        compressed data in hexadecimal... The compressed hexadecimal contains
+        both the encoded data and the Huffman tree for decoding it.
       </p>
       <p>
-        You can also plug in a compressed binary and try decompressing it back
-        to text.
+        You can also plug in hexadecimal and try decompressing it back to text.
       </p>
       <h4>Huffman compress</h4>
       <form
@@ -47,12 +46,12 @@
             <td th:text = "${text}"></td>
           </tr>
           <tr>
-            <td>Original text in binary:</td>
-            <td th:text = "${binary_original}"></td>
+            <td>Original text in hexadecimal:</td>
+            <td th:text = "${hex_original}"></td>
           </tr>
           <tr>
-            <td>Compressed text in binary:</td>
-            <td th:text = "${binary_compressed}"></td>
+            <td>Compressed text in hexadecimal:</td>
+            <td th:text = "${hex_compressed}"></td>
           </tr>
           <tr>
             <td>Compression rate:</td>
@@ -67,7 +66,7 @@
       >
         <textarea
           name = "input"
-          placeholder = "Plug in a compressed binary, bawse"
+          placeholder = "Plug in compressed data in hexadecimal, bawse"
           rows = "5"
           style = "width : 100%;"
         ></textarea><br/>

@@ -1,6 +1,5 @@
 package wackpackr.web;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,20 +13,20 @@ import wackpackr.io.StringIO;
 public class IndexController
 {
     private static String INPUT_TEXT = "n/a";
-    private static String BINARY_ORIGINAL = "n/a";
-    private static String BINARY_COMPRESSED = "n/a";
+    private static String HEX_ORIGINAL = "n/a";
+    private static String HEX_COMPRESSED = "n/a";
     private static String DECOMPRESSED_TEXT = "n/a";
 
     @RequestMapping(value = "*", method = RequestMethod.GET)
     public String index(Model model)
     {
-        double compression_rate = BINARY_ORIGINAL.length() < 1
+        double compression_rate = HEX_ORIGINAL.equals("n/a")
                 ? 0
-                : 1.0 * BINARY_COMPRESSED.length() / BINARY_ORIGINAL.length();
+                : 1.0 * HEX_COMPRESSED.replaceAll("\\s+", "").length() / HEX_ORIGINAL.replaceAll("\\s+", "").length();
 
         model.addAttribute("text", INPUT_TEXT);
-        model.addAttribute("binary_original", StringIO.groupByEights(BINARY_ORIGINAL));
-        model.addAttribute("binary_compressed", StringIO.groupByEights(BINARY_COMPRESSED));
+        model.addAttribute("hex_original", HEX_ORIGINAL);
+        model.addAttribute("hex_compressed", HEX_COMPRESSED);
         model.addAttribute("compression_rate", compression_rate);
         model.addAttribute("decompressed", DECOMPRESSED_TEXT);
 
@@ -42,15 +41,15 @@ public class IndexController
         try
         {
             byte[] original = input.getBytes(StandardCharsets.UTF_8);
-            byte[] bytes = Huffman.compress(original);
-            BINARY_ORIGINAL = StringIO.toBinaryString(original);
-            BINARY_COMPRESSED = StringIO.toBinaryString(bytes);
+            byte[] compressed = Huffman.compress(original);
+            HEX_ORIGINAL = StringIO.bytesToHexString(original);
+            HEX_COMPRESSED = StringIO.bytesToHexString(compressed);
         }
         catch (Exception e)
         {
             INPUT_TEXT = "Something went wrong, fool. Check them logs.";
-            BINARY_ORIGINAL = "n/a";
-            BINARY_COMPRESSED = "n/a";
+            HEX_ORIGINAL = "n/a";
+            HEX_COMPRESSED = "n/a";
             e.printStackTrace();
         }
 
@@ -62,9 +61,8 @@ public class IndexController
     {
         try
         {
-            // below some ABSOLUTE BULLSHIT, only a temporary measure !!!
-            byte[] bytes = new BigInteger(input.replaceAll("\\s+", ""), 2).toByteArray();
-            DECOMPRESSED_TEXT = new String(Huffman.decompress(bytes), StandardCharsets.UTF_8);
+            byte[] compressed = StringIO.hexStringToBytes(input);
+            DECOMPRESSED_TEXT = new String(Huffman.decompress(compressed), StandardCharsets.UTF_8);
         }
         catch (Exception e)
         {
