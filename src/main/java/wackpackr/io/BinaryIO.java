@@ -7,21 +7,22 @@ import java.io.OutputStream;
 
 /**
  * Combined wrapper for Input- and OutputStreams, that allows reading and writing one bit at a time,
- * while also offering the same methods for byte-size chunks irrespective of byte boundaries.
+ * while also offering the same methods for byte-size chunks, irrespective of the byte boundaries of
+ * the underlying streams.
  *
- * TO-DO : More comprehensive comments ...
+ * Possible to initiate with just the input or output stream, or both.
  *
  * @author Juho Juurinen
  */
 public class BinaryIO implements AutoCloseable
 {
     private final InputStream in;
-    private final OutputStream out;
-
-    private int bitsIn = 0;
-    private int bitsOut = 0;
     private int bufferIn = -1;
+    private int offsetIn = 0;
+
+    private final OutputStream out;
     private int bufferOut = 0;
+    private int offsetOut = 0;
 
     public BinaryIO(InputStream in)
     {
@@ -49,18 +50,18 @@ public class BinaryIO implements AutoCloseable
      * @throws IOException if there's an error reading the input stream
      * @throws EOFException if input stream has been read through to the end
      */
-    public boolean readBit() throws Exception
+    public boolean readBit() throws IOException
     {
-        if (bitsIn == 0)
+        if (offsetIn == 0)
         {
             bufferIn = in.read();
-            bitsIn = 8;
+            offsetIn = 8;
         }
         if (bufferIn == -1)
             throw new EOFException();
 
-        bitsIn--;
-        return ((bufferIn >> bitsIn) & 1) == 1;
+        offsetIn--;
+        return ((bufferIn >> offsetIn) & 1) == 1;
     }
 
     /**
@@ -72,7 +73,7 @@ public class BinaryIO implements AutoCloseable
      * @throws IOException if there's an error reading the input stream
      * @throws EOFException if input stream has been read through to the end
      */
-    public int readByte() throws Exception
+    public byte readByte() throws IOException
     {
         int prev = bufferIn;
         bufferIn = in.read();
@@ -80,50 +81,79 @@ public class BinaryIO implements AutoCloseable
         if (bufferIn == -1)
             throw new EOFException();
 
-        return ((prev << (8 - bitsIn)) | (bufferIn >> bitsIn)) % 256;  //  STILL SOMETHING FISHY HERE
+        int b = (offsetIn == 0)
+                ? bufferIn
+                : (prev << (8 - offsetIn)) | (bufferIn >> offsetIn);
+
+        return (byte) b;
     }
 
     /**
-     * Reads and returns the next 32-bit chunk in input stream cast as a long value.
+     * Reads and returns the next 32-bit chunk in input stream, cast as a long value.
      *
-     * @return the next 32 bits in input stream as long value
+     * @return the next 32 bits in input stream as long
      * @throws NullPointerException if no input stream has been set
      * @throws IOException if there's an error reading the input stream
      * @throws EOFException if there is less than 32 bits left in input stream
      */
-    public long readLong() throws Exception
+    public long read32Bits() throws IOException
     {
-        return (readByte() << 24 |
-                readByte() << 16 |
-                readByte() <<  8 |
-                readByte());
+        long l = 0L;
+
+        for (int i = 0; i < 4; i++)
+        {
+            l <<= 8;
+            l |= (readByte() & 0xFF);
+        }
+
+        return l;
     }
 
-    public void writeBit(boolean b) throws Exception
+    /**
+     * Writes one bit at the end of the output stream.
+     * 
+     * @param b bit to write as boolean
+     * @throws NullPointerException if no output stream has been set
+     * @throws IOException if there's an error writing to the output stream
+     */
+    public void writeBit(boolean b) throws IOException
     {
         bufferOut = (bufferOut << 1) | (b ? 1 : 0);
-        bitsOut++;
+        offsetOut++;
 
-        if (bitsOut == 8)
+        if (offsetOut == 8)
         {
             out.write(bufferOut);
-            bitsOut = 0;
+            offsetOut = 0;
             bufferOut = 0;
         }
     }
 
-    public void writeByte(int b) throws Exception
+    /**
+     * Writes one byte at the end of the output stream, irrespective of where the write pointer is
+     * within current byte buffer.
+     *
+     * @param b byte to write
+     * @throws NullPointerException if no output stream has been set
+     * @throws IOException if there's an error writing to the output stream
+     */
+    public void writeByte(byte b) throws IOException
     {
-        assert 0 <= b && b < 256;
-
-        if (bitsOut == 0)
+        if (offsetOut == 0)
             out.write(b);
         else
             for (int i = 7; i >= 0; i--)
                 writeBit(((b >> i) & 1) == 1);
     }
 
-    public void writeLong(long l) throws Exception
+    /**
+     * Writes a 32-bit chunk at the end of the output stream.
+     *
+     * @param l 32 bits of data to write, given as long
+     * @throws NullPointerException if no output stream has been set
+     * @throws IOException if there's an error writing to the output stream
+     */
+    public void write32Bits(long l) throws IOException
     {
         byte[] bs = new byte[4];
 

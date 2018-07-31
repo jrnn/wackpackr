@@ -16,7 +16,7 @@ import wackpackr.util.HuffNode;
  */
 public class Huffman
 {
-    public static byte[] compress(byte[] input) throws Exception
+    public static byte[] compress(byte[] input) throws IOException
     {
         // read through input and build huffman tree
         HuffNode root = HuffTreeParser.buildTree(input);
@@ -42,7 +42,7 @@ public class Huffman
 
         // finally, explicitly add pseudo-eof at the end + pad with zeroes (temporary, I hope...)
         encode(codes[256], io);
-        io.writeByte(0);
+        io.writeByte((byte) 0);
 
         byte[] bytes = out.toByteArray();
         io.close();
@@ -51,7 +51,7 @@ public class Huffman
         return bytes;
     }
 
-    public static byte[] decompress(byte[] input) throws Exception
+    public static byte[] decompress(byte[] input) throws IOException
     {
         ByteArrayInputStream in = new ByteArrayInputStream(input);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -90,7 +90,7 @@ public class Huffman
     /* --- Most of the stuff below this line probably belongs in separate classes? --- */
 
 
-    private static void encode(String code, BinaryIO io) throws Exception
+    private static void encode(String code, BinaryIO io) throws IOException
     {
         for (char c : code.toCharArray())
         {
@@ -114,14 +114,14 @@ public class Huffman
 
     private static final long TAG = 0x07031986;
 
-    private static void writeTag(BinaryIO io) throws Exception
+    private static void writeTag(BinaryIO io) throws IOException
     {
-        io.writeLong(TAG);
+        io.write32Bits(TAG);
     }
 
-    private static boolean checkTag(BinaryIO io) throws Exception
+    private static boolean checkTag(BinaryIO io) throws IOException
     {
-        long tag = io.readLong();
+        long tag = io.read32Bits();
         return (tag == TAG);
     }
 }

@@ -1,10 +1,9 @@
 package wackpackr.io;
 
 /**
- * Name should say it all... A bullshit helper class that imitates a bit stream. Intended for use in
- * early stage of project, while still tinkering with Strings instead of 1s and 0s.
+ * Helper class that mimics a bit stream with a String of 1s and 0s. Intended for use only in tests.
  *
- * @author jjuurine
+ * @author Juho Juurinen
  */
 public class MockBitStream
 {
@@ -15,49 +14,37 @@ public class MockBitStream
         this.s = s;
     }
 
-    public void write(String t)
-    {
-        s += t;
-    }
-
     public boolean hasNext()
     {
         return !s.isEmpty();
     }
 
-    public int nextBit()
+    public int length()
     {
-        return next(1);
+        return s.length();
     }
 
-    public int nextByte()
+    public boolean nextBit()
     {
-        return next(8);
+        return next(1) == 1;
     }
 
-    public long nextLong()
+    public byte nextByte()
     {
-        if (s.length() < 32)
-            throw new ArrayIndexOutOfBoundsException();
-
-        long next = Long.parseLong(s.substring(0, 32), 2);
-        s = s.substring(32);
-
-        return next;
+        return (byte) next(8);
     }
 
-    @Override
-    public String toString()
+    public long next32Bits()
     {
-        return s;
+        return next(32);
     }
 
-    private int next(int n)
+    private long next(int n)
     {
         if (s.length() < n)
             throw new ArrayIndexOutOfBoundsException();
 
-        int next = Integer.parseInt(s.substring(0, n), 2);
+        long next = Long.parseLong(s.substring(0, n), 2);
         s = s.substring(n);
 
         return next;

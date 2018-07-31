@@ -1,5 +1,6 @@
 package wackpackr.core;
 
+import java.io.IOException;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
 import wackpackr.util.MinHeap;
@@ -49,9 +50,9 @@ public class HuffTreeParser
      *
      * @param node pointer to root node of Huffman tree
      * @param io output stream wrapper to which tree is encoded
-     * @throws Exception
+     * @throws IOException
      */
-    public static void encodeTree(HuffNode node, BinaryIO io) throws Exception
+    public static void encodeTree(HuffNode node, BinaryIO io) throws IOException
     {
         if (node.isLeaf())
         {
@@ -75,9 +76,9 @@ public class HuffTreeParser
      *
      * @param io input stream wrapper containing Huffman-compressed binary
      * @return pointer to root node of decoded Huffman tree
-     * @throws Exception
+     * @throws IOException
      */
-    public static HuffNode decodeTree(BinaryIO io) throws Exception
+    public static HuffNode decodeTree(BinaryIO io) throws IOException
     {
         HuffNode root = decode(io);
         overwriteEoF(root, io);
@@ -99,17 +100,17 @@ public class HuffTreeParser
         return freqs;
     }
 
-    private static HuffNode decode(BinaryIO io) throws Exception
+    private static HuffNode decode(BinaryIO io) throws IOException
     {
         return io.readBit()
-                ? new HuffNode((byte) io.readByte(), 0)
+                ? new HuffNode(io.readByte(), 0)
                 : new HuffNode(
                         decode(io),
                         decode(io)
                 );
     }
 
-    private static void overwriteEoF(HuffNode node, BinaryIO io) throws Exception
+    private static void overwriteEoF(HuffNode node, BinaryIO io) throws IOException
     {
         while (!node.isLeaf())
             node = io.readBit()
