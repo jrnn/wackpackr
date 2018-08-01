@@ -7,121 +7,76 @@ import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
 
 /**
- * Simplistic implementation of Huffman algorithm. The tree storing the bit mappings is encoded at
- * head of compressed binary.
- *
- * Class is quite bloated with some fugly big methods. Needs some serious restructuring.
+ * Compression and decompression with a simplistic implementation of the Huffman algorithm. This
+ * class basically just handles initialising the input- and output streams used for I/O operations,
+ * while most of the actual work is delegated to helper classes.
  *
  * @author Juho Juurinen
  */
 public class Huffman
 {
-    public static byte[] compress(byte[] input) throws IOException
+    /**
+     * 32-bit identifier placed at the head of compressed files.
+     */
+    private static final long HUFFMAN_TAG = 0x07031986;
+
+    /**
+     * Compresses given file. Information needed for decompression is stored to the output file as a
+     * header. The header consists, in order, of (1) a 32-bit identifier; (2) Huffman tree that maps
+     * prefix codes to byte values; and (3) prefix code associated with the pseudo-EoF marker.
+     * Header is followed by the actual data in encoded form. File closes with the pseudo-EoF bit
+     * sequence, and a few 0s for buffer (just to be safe).
+     *
+     * @param bytes file to compress, as byte array
+     * @return compressed file, as byte array
+     * @throws IOException
+     */
+    public static byte[] compress(byte[] bytes) throws IOException
     {
-        // read through input and build huffman tree
-        HuffNode root = HuffTreeParser.buildTree(input);
-
-        // build translation table (byte <--> Huffman code) by traversing the tree
-        String[] codes = new String[257];
-        writeCodes(codes, root, "");
-
-        // initialize new binary stream with "ID tag" at head position
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BinaryIO io = new BinaryIO(out);
-        writeTag(io);
-
-        // write tree at head of compressed binary
-        HuffTreeParser.encodeTree(root, io);
-
-        // append path to pseudo-eof node after encoded tree
-        encode(codes[256], io);
-
-        // read input once more, and translate it to compressed form
-        for (byte b : input)
-            encode(codes[b + 128], io);
-
-        // finally, explicitly add pseudo-eof at the end + pad with zeroes (temporary, I hope...)
-        encode(codes[256], io);
-        io.writeByte((byte) 0);
-
-        byte[] bytes = out.toByteArray();
-        io.close();
-
-        // return compressed binary, which now includes both tree and data
-        return bytes;
-    }
-
-    public static byte[] decompress(byte[] input) throws IOException
-    {
-        ByteArrayInputStream in = new ByteArrayInputStream(input);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BinaryIO io = new BinaryIO(in, out);
-
-        // check 32-bit identifier at file head -- throw exception if mismatch
-        if (!checkTag(io))
-            throw new IOException("Fool, this ain't a Huffman compressed file");
-
-        // decode Huffman tree from header
-        HuffNode root = HuffTreeParser.decodeTree(io);
-
-        // read input until eof marker, translating to decompressed form on the go
-        HuffNode node;
-        while (true)
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream())
         {
-            node = root;
-            while (!node.isLeaf())
-                node = io.readBit()
-                        ? node.getRight()
-                        : node.getLeft();
+            try (BinaryIO io = new BinaryIO(out))
+            {
+                io.write32Bits(HUFFMAN_TAG);
 
-            if (node.isEoF())
-                break;
+                HuffNode root = HuffTreeParser.buildTree(bytes);
+                HuffTreeParser.encodeTree(root, io);
 
-            io.writeByte(node.getValue());
-        }
-
-        byte[] bytes = out.toByteArray();
-        io.close();  // can be replaced with smarter code organization? (try-with block)
-
-        return bytes;
-    }
-
-
-    /* --- Most of the stuff below this line probably belongs in separate classes? --- */
-
-
-    private static void encode(String code, BinaryIO io) throws IOException
-    {
-        for (char c : code.toCharArray())
-        {
-            assert c == '0' || c == '1';
-            io.writeBit(c == '1');
+                HuffEncoder.encode(bytes, root, io);
+                return out.toByteArray();
+            }
         }
     }
 
-    private static void writeCodes(String[] codes, HuffNode node, String code)
+    /**
+     * Decompresses given file. Tries first to read file header, which contains all information
+     * needed for decompression; then decodes the compressed data with the Huffman tree extracted
+     * from the header.
+     *
+     * Apart from checking the 32-bit tag in the header, there are practically no other measures to
+     * verify the file. Passing in a valid file is method caller's responsibility.
+     *
+     * @param bytes file to decompress, as byte array
+     * @return decompressed file, as byte array
+     * @throws IllegalArgumentException if file does not have the correct identifier in its header
+     * @throws IOException
+     */
+    public static byte[] decompress(byte[] bytes) throws IOException
     {
-        if (node.isEoF())
-            codes[256] = code;
-        else if (node.isLeaf())
-            codes[node.getValue() + 128] = code;
-        else
+        try (
+                ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+                ByteArrayOutputStream out = new ByteArrayOutputStream())
         {
-            writeCodes(codes, node.getLeft(), code + "0");
-            writeCodes(codes, node.getRight(), code + "1");
+            try (BinaryIO io = new BinaryIO(in, out))
+            {
+                if (io.read32Bits() != HUFFMAN_TAG)
+                    throw new IllegalArgumentException("Not a Huffman compressed file");
+
+                HuffNode root = HuffTreeParser.decodeTree(io);
+                HuffEncoder.decode(root, io);
+
+                return out.toByteArray();
+            }
         }
-    }
-
-    private static final long TAG = 0x07031986;
-
-    private static void writeTag(BinaryIO io) throws IOException
-    {
-        io.write32Bits(TAG);
-    }
-
-    private static boolean checkTag(BinaryIO io) throws IOException
-    {
-        long tag = io.read32Bits();
-        return (tag == TAG);
     }
 }

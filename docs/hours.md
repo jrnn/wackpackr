@@ -13,4 +13,5 @@
 | 29.7. | 5 | 25 | extending Huffman to work more generally with binary data |
 | 30.7. | 2 | 27 | restructuring Huffman code |
 | 31.7. | 4 | 31 | i/o wrapper tweaks and unit testing |
+| 1.8. | 2 | 33 | restructuring Huffman code |
 
