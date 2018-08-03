@@ -47,7 +47,8 @@ public class HuffNode implements Comparable<HuffNode>
      */
     public HuffNode(HuffNode left, HuffNode right)
     {
-        assert left != null && right != null;
+        if (left == null || right == null)
+            throw new IllegalArgumentException("Internal nodes must have exactly two children");
 
         this.value = 0;
         this.weight = left.weight + right.weight;
@@ -99,13 +100,15 @@ public class HuffNode implements Comparable<HuffNode>
     }
 
     /**
-     * Sets node as a pseudo-EoF marker. This breaks the pattern of distinguishing node types with
-     * constructors, but is needed when decoding Huffman trees from compressed binary (including
-     * this information directly in the encoded form would compromise efficiency).
+     * Sets node as a pseudo-EoF marker, if it is a leaf node. This breaks the pattern of
+     * distinguishing node types with constructors, but is needed when decoding Huffman trees from
+     * compressed binary (including this information directly in the encoded form would compromise
+     * efficiency).
      */
     public void setEoF()
     {
-        this.eof = true;
+        if (isLeaf())
+            this.eof = true;
     }
 
     @Override
