@@ -25,8 +25,8 @@ public class HuffNode implements Comparable<HuffNode>
      * Constructor for leaf nodes. Used when initialising single-node trees before combining them
      * into a Huffman tree.
      *
-     * @param value - byte value associated with this node
-     * @param weight - number of occurrences of {@param value} in processed file
+     * @param value byte value associated with this node
+     * @param weight number of occurrences of this byte value in processed file
      */
     public HuffNode(byte value, long weight)
     {
@@ -38,12 +38,12 @@ public class HuffNode implements Comparable<HuffNode>
     /**
      * Constructor for internal nodes. Used when building a Huffman tree by combining "lesser"
      * trees. Weight is calculated directly as the sum of children's weights. Neither of the child
-     * nodes can be {@code null}.
+     * nodes can be {@code null}. The subtrees starting from both child nodes should contain only
+     * byte values with lower frequencies than leaf nodes further up the tree.
      *
-     * @param left - root Node of a subtree whose leaf nodes contain only byte values with lower
-     *               frequencies than leaf nodes further up from this node
-     * @param right - root Node of a subtree whose leaf nodes contain only byte values with lower
-     *                frequencies than leaf nodes further up from this node
+     * @param left pointer to root node of left subtree
+     * @param right pointer to root node of right subtree
+     * @throws IllegalArgumentException if trying to pass null as child node
      */
     public HuffNode(HuffNode left, HuffNode right)
     {
@@ -51,13 +51,13 @@ public class HuffNode implements Comparable<HuffNode>
             throw new IllegalArgumentException("Internal nodes must have exactly two children");
 
         this.value = 0;
-        this.weight = left.weight + right.weight;
+        this.weight = left.getWeight() + right.getWeight();
         this.left = left;
         this.right = right;
     }
 
     /**
-     * Constructor for Pseudo-EoF node. Used exactly once when building a Huffman tree from a
+     * Constructor for pseudo-EoF node. Used exactly once when building a Huffman tree from a
      * frequency table. The node's weight is set as negative to ensure that it takes a relatively
      * low position in the tree.
      */
@@ -120,7 +120,7 @@ public class HuffNode implements Comparable<HuffNode>
 
     /* --- BELOW JUST SOME TEMPORARY BULLSHIT METHODS FOR DEBUGGING PURPOSES --- */
 
-    
+
     @Override
     public String toString()
     {

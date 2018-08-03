@@ -2,7 +2,7 @@ package wackpackr.io;
 
 /**
  *  This just some temporary bullshit, won't bother to comment.
- * 
+ *
  *  @author jjuurine
  */
 public class StringIO

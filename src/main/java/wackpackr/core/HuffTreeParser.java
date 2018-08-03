@@ -6,7 +6,7 @@ import wackpackr.util.HuffNode;
 import wackpackr.util.MinHeap;
 
 /**
- * Utility class that handles forming and parsing of frequency-sorted binary trees needed in Huffman
+ * Helper class that handles forming and parsing of frequency-sorted binary trees needed in Huffman
  * compression and decompression.
  *
  * @author Juho Juurinen
@@ -55,10 +55,9 @@ public class HuffTreeParser
     public static void encodeTree(HuffNode node, BinaryIO io) throws IOException
     {
         if (node.isLeaf())
-        {
-            io.writeBit(true);
-            io.writeByte(node.getValue());
-        }
+            io
+                    .writeBit(true)
+                    .writeByte(node.getValue());
         else
         {
             io.writeBit(false);
@@ -71,8 +70,7 @@ public class HuffTreeParser
      * Reads Huffman tree from given input stream, and returns pointer to root node of the tree.
      *
      * Assumes that the immediate next sequence of bits in the input stream contains a Huffman tree
-     * encoded in a specific manner, followed by the prefix code of the pseudo-EoF node (ensuring
-     * this is on method caller's responsibility).
+     * encoded in a specific manner, followed by the prefix code of the pseudo-EoF node.
      *
      * @param io input stream wrapper containing Huffman-compressed binary
      * @return pointer to root node of decoded Huffman tree

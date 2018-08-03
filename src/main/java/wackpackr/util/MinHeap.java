@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 /**
- * Simple binary min-heap providing just the basic operations: <strong>adding</strong> and <strong>
- * popping</strong> elements in O(log n) time, and <strong>peeking</strong> in constant time.
+ * Simple binary min-heap providing just the basic operations: adding and popping elements in
+ * O(log n) time, and peeking in constant time.
  *
  * Elements are ordered by their natural ordering. Trying to add elements that do not implement the
  * {@link Comparable} interface results in {@code ClassCastException}.
@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
  *
  * The heap is unbounded, though it stores elements in an array. Similar to e.g. {@link ArrayList},
  * array capacity is expanded or decreased at certain threshold "fill rates", however so that adding
- * elements is still possible in amortized O(log n) time.
+ * elements is still possible in amortised O(log n) time.
  *
  * @author Juho Juurinen
  * @param <E> the class of elements held in a heap instance
@@ -56,7 +56,7 @@ public class MinHeap<E>
     /**
      * Retrieves (but does not remove) the element at the head of the heap.
      *
-     * @return Smallest element in the heap, or {@code null} if heap is empty.
+     * @return smallest element in the heap, or {@code null} if heap is empty
      */
     public E peek()
     {
@@ -68,9 +68,9 @@ public class MinHeap<E>
     /**
      * Inserts the given element into the heap.
      *
-     * @param  e Element to insert into the heap.
-     * @throws NullPointerException if given element is null.
-     * @throws ClassCastException if given element does not implement {@link Comparable} interface.
+     * @param e element to insert into the heap
+     * @throws NullPointerException if given element is null
+     * @throws ClassCastException if given element does not implement {@link Comparable} interface
      */
     public void add(E e)
     {
@@ -95,8 +95,8 @@ public class MinHeap<E>
     /**
      * Retrieves and removes the element at the head of the heap.
      *
-     * @return Smallest element in the heap.
-     * @throws NoSuchElementException if heap is empty.
+     * @return smallest element in the heap
+     * @throws NoSuchElementException if heap is empty
      */
     public E pop()
     {

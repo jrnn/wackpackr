@@ -111,12 +111,13 @@ public class BinaryIO implements AutoCloseable
 
     /**
      * Writes one bit at the end of the output stream.
-     * 
+     *
      * @param b bit to write as boolean
+     * @return this same BinaryIO instance (for method chaining)
      * @throws NullPointerException if no output stream has been set
      * @throws IOException if there's an error writing to the output stream
      */
-    public void writeBit(boolean b) throws IOException
+    public BinaryIO writeBit(boolean b) throws IOException
     {
         bufferOut = (bufferOut << 1) | (b ? 1 : 0);
         offsetOut++;
@@ -127,6 +128,8 @@ public class BinaryIO implements AutoCloseable
             offsetOut = 0;
             bufferOut = 0;
         }
+
+        return this;
     }
 
     /**
@@ -134,26 +137,30 @@ public class BinaryIO implements AutoCloseable
      * within current byte buffer.
      *
      * @param b byte to write
+     * @return this same BinaryIO instance (for method chaining)
      * @throws NullPointerException if no output stream has been set
      * @throws IOException if there's an error writing to the output stream
      */
-    public void writeByte(byte b) throws IOException
+    public BinaryIO writeByte(byte b) throws IOException
     {
         if (offsetOut == 0)
             out.write(b);
         else
             for (int i = 7; i >= 0; i--)
                 writeBit(((b >> i) & 1) == 1);
+
+        return this;
     }
 
     /**
      * Writes a 32-bit chunk at the end of the output stream.
      *
      * @param l 32 bits of data to write, given as long
+     * @return this same BinaryIO instance (for method chaining)
      * @throws NullPointerException if no output stream has been set
      * @throws IOException if there's an error writing to the output stream
      */
-    public void write32Bits(long l) throws IOException
+    public BinaryIO write32Bits(long l) throws IOException
     {
         byte[] bs = new byte[4];
 
@@ -164,6 +171,8 @@ public class BinaryIO implements AutoCloseable
         }
         for (byte b : bs)
             writeByte(b);
+
+        return this;
     }
 
     @Override

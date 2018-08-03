@@ -5,8 +5,8 @@ import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
 
 /**
- * Utility class that handles most of the steps in the Huffman algorithm; practically everything
- * else but trees, which are handled by {@link HuffTreeParser}.
+ * Helper class that handles most of the steps in the Huffman algorithm: practically everything else
+ * but trees, which are handled by {@link HuffTreeParser}.
  *
  * @author Juho Juurinen
  */
@@ -61,7 +61,7 @@ public class HuffEncoder
      * @param bytes file to encode, as byte array
      * @param root pointer to root node of Huffman tree used in decoding
      * @param io I/O wrapper that holds both the input and output streams
-     * @throws IOException 
+     * @throws IOException
      */
     public static void encode(byte[] bytes, HuffNode root, BinaryIO io) throws IOException
     {
