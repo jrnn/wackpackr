@@ -1,5 +1,9 @@
 package wackpackr.core;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import wackpackr.io.BinaryIO;
+
 /**
  * Horrible quick-and-dirty LZ77 compressor, at this point only for personal learning purposes ...
  *
@@ -9,17 +13,30 @@ public class LZSS
 {
     // sliding window has 4096 bytes at once; i.e. offset can be max 4096
     private static final int PREFIX_SIZE = 4096;
-    // lookahead buffer has 16 bytes at once; i.e. length can be max 16
-    // note that min length to encode should be 3. so, can encode 3 to 18 bytes length
-    private static final int BUFFER_SIZE = 16;
 
-    public static String compress()
+    // because pointer takes 2 bytes, minimum length to encode is 3 bytes ("break-even point")
+    private static final int THRESHOLD_LENGTH = 2;
+
+    // because only length 3 and above is encoded, lookahead buffer has 16 + 2 bytes at once; i.e.
+    // length can be [3, 18]. this needs to be taken into account when writing/reading pointers
+    private static final int BUFFER_SIZE = 16 + THRESHOLD_LENGTH;
+
+    public static byte[] compress(byte[] bytes) throws IOException
     {
-        String input = "Never gonna give you up, never gonna let you down, never gonna run around and desert you. Never gonna make you cry, never gonna say goodbye, never gonna tell a lie and hurt you.";
-        String output = "";
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream())
+        {
+            try (BinaryIO io = new BinaryIO(out))
+            {
+                process(bytes, io);
+                return out.toByteArray();
+            }
+        }
+    }
 
+    private static void process(byte[] bytes, BinaryIO io) throws IOException
+    {
         int pos = 0;
-        while (pos < input.length())
+        while (pos < bytes.length)
         {
             int bestLength = 0;
             int bestOffset = 0;
@@ -29,10 +46,10 @@ public class LZSS
                 int length = 0;
                 int bufferPos = pos;
                 int prefixPos = pos - offset;
-                int maxBufferPos = Math.min(pos + BUFFER_SIZE, input.length());
+                int maxBufferPos = Math.min(pos + BUFFER_SIZE, bytes.length);
                 while (bufferPos < maxBufferPos)
                 {
-                    if (input.charAt(bufferPos) != input.charAt(prefixPos))
+                    if (bytes[bufferPos] != bytes[prefixPos])
                         break;
                     length++;
                     bufferPos++;
@@ -44,13 +61,46 @@ public class LZSS
                     bestOffset = offset;
                 }
             }
-            output += (bestLength > 2)
-                    ? "(" + bestOffset + "," + bestLength + ")"
-                    : input.charAt(pos);
-            pos += (bestLength > 2)
-                    ? bestLength
-                    : 1;
+            if (bestLength > THRESHOLD_LENGTH)
+            {
+                System.out.print("(" + bestOffset + "," + bestLength + ")");
+                writePointer(bestOffset, bestLength - THRESHOLD_LENGTH, io);
+                pos += bestLength;
+            }
+            else
+            {
+                System.out.print((char) bytes[pos]);
+                io
+                        .writeBit(false)
+                        .writeByte(bytes[pos]);
+                pos++;
+            }
         }
-        return output;
+    }
+
+    private static void writePointer(int offset, int length, BinaryIO io) throws IOException
+    {
+        io
+                .writeBit(true)
+                .writeByte((byte) (offset >> 4))
+                .writeByte((byte) (offset << 4 | length));
+    }
+
+    private static byte[] pointerToBytes(int offset, int length)
+    {
+        byte[] bytes = new byte[2];
+        bytes[0] = (byte) (offset >> 4);
+        bytes[1] = (byte) (offset << 4 | length);
+        return bytes;
+    }
+
+    private static int readOffsetFromPointer(byte[] bytes)
+    {
+        return (bytes[0] << 4 | bytes[1] >> 4 & 0xF) & 0xFFF;
+    }
+
+    private static int readLengthFromPointer(byte[] bytes)
+    {
+        return bytes[1] & 0xF;
     }
 }
