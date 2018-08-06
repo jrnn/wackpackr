@@ -18,13 +18,14 @@ package wackpackr.util;
  * by itself. Trying to read beyond either end of the cache window results in an exception.
  *
  * @author Juho Juurinen
+ * @param <E> the class of elements stored in sliding window instance
  */
-public class SlidingWindow
+public class SlidingWindow<E>
 {
     /**
      * Array for storing elements, using circular access.
      */
-    private final byte[] queue;
+    private final Object[] queue;
 
     /**
      * Maximum number of elements retained in queue at any one time.
@@ -45,7 +46,7 @@ public class SlidingWindow
     public SlidingWindow(int windowSize)
     {
         this.size = windowSize;
-        this.queue = new byte[size];
+        this.queue = new Object[size];
     }
 
     /**
@@ -62,11 +63,11 @@ public class SlidingWindow
      * Inserts given element at head of window. If maximum window size has been reached, oldest
      * element at end of window is discarded at the same time.
      *
-     * @param b element to insert
+     * @param e element to insert
      */
-    public void insert(byte b)
+    public void insert(E e)
     {
-        queue[head % size] = b;
+        queue[head % size] = e;
         head++;
     }
 
@@ -112,7 +113,7 @@ public class SlidingWindow
      * @return element at current cursor position
      * @throws IndexOutOfBoundsException if trying to read beyond cache window
      */
-    public byte read()
+    public E read()
     {
         return read(0);
     }
@@ -125,12 +126,12 @@ public class SlidingWindow
      * @return element at given offset from current cursor position
      * @throws IndexOutOfBoundsException if trying to read beyond cache window
      */
-    public byte read(int offset)
+    public E read(int offset)
     {
         int i = cursor + offset;
         throwExceptionIfOutOfBounds(i);
 
-        return queue[i % size];
+        return (E) queue[i % size];
     }
 
 
