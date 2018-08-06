@@ -17,3 +17,5 @@
 | 3.8. | 2 | 35 | huffnode unit testing + quick tests for huffman compressor |
 | 5.8. | 3 | 38 | reading up on LZ77 and LZSS |
 | 5.8. | 2 | 40 | first cut LZ77/SS compress, with wasteful "brute-force" longest match search (not reflected in UI yet) |
+| 6.8. | 2 | 42 | DYI sliding window utility |
+
