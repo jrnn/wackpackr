@@ -1,6 +1,7 @@
 package wackpackr.core;
 
 import java.io.IOException;
+import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
 
@@ -17,11 +18,6 @@ public class HuffEncoder
      * in the corresponding Huffman tree.
      */
     private static String[] CODES;
-
-    /**
-     * Index for the pseudo-EoF node's prefix code, outside the byte value range [ -128, 127 ].
-     */
-    private static final int EOF_INDEX = Byte.MAX_VALUE + 1;
 
     /**
      * Reads and decodes given input stream using the Huffman tree passed as parameter, at the same
@@ -51,12 +47,12 @@ public class HuffEncoder
     }
 
     /**
-     * Writes the given data in encoded -- and, hopefully, decompressed -- form into the given
-     * output stream, using the given Huffman tree. Assumes that file identifier and the Huffman
-     * tree have already been written into the output stream. Wraps the encoded data with the
-     * pseudo-EoF node's prefix code on both sides, because this is the format expected when
-     * decompressing. Finally, adds a few 0s for padding just to ensure that the last EoF sequence
-     * is not partially cut out.
+     * Writes the given data in encoded -- and, hopefully, compressed -- form into the given output
+     * stream, using the given Huffman tree. Assumes that file identifier and the Huffman tree have
+     * already been written into the output stream. Wraps the encoded data with the pseudo-EoF
+     * node's prefix code on both sides, because this is the format expected when decompressing.
+     * Finally, adds a few 0s for padding just to ensure that the last EoF sequence is not partially
+     * cut off.
      *
      * @param bytes file to encode, as byte array
      * @param root pointer to root node of Huffman tree used in decoding
@@ -67,12 +63,12 @@ public class HuffEncoder
     {
         CODES = new String[257];
         formCodeTable(root, "");
-        write(EOF_INDEX, io);
+        write(Constants.HUFFMAN_EOF_INDEX, io);
 
         for (byte b : bytes)
             write(b, io);
 
-        write(EOF_INDEX, io);
+        write(Constants.HUFFMAN_EOF_INDEX, io);
         io.writeByte((byte) 0);
     }
 
@@ -92,7 +88,7 @@ public class HuffEncoder
     private static void formCodeTable(HuffNode node, String code)
     {
         int i = (node.isEoF())
-                ? EOF_INDEX
+                ? Constants.HUFFMAN_EOF_INDEX
                 : node.getValue();
 
         if (node.isLeaf())

@@ -3,6 +3,7 @@ package wackpackr.core;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
 
@@ -15,11 +16,6 @@ import wackpackr.util.HuffNode;
  */
 public class Huffman
 {
-    /**
-     * 32-bit identifier placed at the head of compressed files.
-     */
-    private static final long HUFFMAN_TAG = 0x07031986;
-
     /**
      * Compresses given file. Information needed for decompression is stored to the output file as a
      * header. The header consists, in order, of (1) a 32-bit identifier; (2) Huffman tree that maps
@@ -37,7 +33,7 @@ public class Huffman
         {
             try (BinaryIO io = new BinaryIO(out))
             {
-                io.write32Bits(HUFFMAN_TAG);
+                io.write32Bits(Constants.HUFFMAN_TAG);
 
                 HuffNode root = HuffTreeParser.buildTree(bytes);
                 HuffTreeParser.encodeTree(root, io);
@@ -69,7 +65,7 @@ public class Huffman
         {
             try (BinaryIO io = new BinaryIO(in, out))
             {
-                if (io.read32Bits() != HUFFMAN_TAG)
+                if (io.read32Bits() != Constants.HUFFMAN_TAG)
                     throw new IllegalArgumentException("Not a Huffman compressed file");
 
                 HuffNode root = HuffTreeParser.decodeTree(io);

@@ -2,6 +2,7 @@ package wackpackr.core;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
+import wackpackr.config.Constants;
 import wackpackr.util.SlidingWindow;
 
 /**
@@ -16,19 +17,8 @@ import wackpackr.util.SlidingWindow;
  */
 public class LZSSWindowOperator
 {
-    // CONSTANTS SHOULD GO INTO ONE PLACE
-    private static final int PREFIX_SIZE = 4095;
-    private static final int THRESHOLD_LENGTH = 3;
-    private static final int BUFFER_SIZE = 15 + THRESHOLD_LENGTH;
-
-    private final ArrayDeque<Integer>[] positions = new ArrayDeque[256];
-    private final SlidingWindow<Byte> window = new SlidingWindow(PREFIX_SIZE + BUFFER_SIZE);
-
-    public LZSSWindowOperator()
-    {
-        for (int i = 0; i < 256; i++)
-            positions[i] = new ArrayDeque<>();
-    }
+    private ArrayDeque<Integer>[] positions;
+    private final SlidingWindow<Byte> window = new SlidingWindow(Constants.LZSS_WINDOW_SIZE);
 
     /**
      * Reads backwards through current prefix window, searching for longest partial or complete
@@ -50,7 +40,7 @@ public class LZSSWindowOperator
             int length = 0;
             int offset = window.cursor() - iter.next();
 
-            while (length < BUFFER_SIZE)
+            while (length < Constants.LZSS_BUFFER_SIZE)
             {
                 if (window.read(length) == null)
                     break;
@@ -65,7 +55,7 @@ public class LZSSWindowOperator
                 maxLength = length;
                 maxOffset = offset;
             }
-            if (maxLength == BUFFER_SIZE)
+            if (maxLength == Constants.LZSS_BUFFER_SIZE)
                 break;
         }
 
@@ -90,19 +80,20 @@ public class LZSSWindowOperator
         window.move();
     }
 
+    public void initForEncoding(Byte[] initialBuffer)
+    {
+        positions = new ArrayDeque[256];
+
+        for (int i = 0; i < 256; i++)
+            positions[i] = new ArrayDeque<>();
+
+        for (Byte b : initialBuffer)
+            window.insert(b);
+    }
+
     public Byte next()
     {
         return window.read();
-    }
-
-    public void insert(Byte b)
-    {
-        window.insert(b);
-    }
-
-    public boolean isBufferFull()
-    {
-        return (window.available() >= BUFFER_SIZE);
     }
 
     /**

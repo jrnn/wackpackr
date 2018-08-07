@@ -2,6 +2,7 @@ package wackpackr.core;
 
 import java.io.EOFException;
 import java.io.IOException;
+import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 
 /**
@@ -13,9 +14,6 @@ import wackpackr.io.BinaryIO;
  */
 public class LZSSEncoder
 {
-    // CONSTANTS SHOULD GO INTO ONE PLACE
-    private static final int THRESHOLD_LENGTH = 3;
-
     private static boolean EOF_REACHED;
 
     /**
@@ -55,28 +53,28 @@ public class LZSSEncoder
      */
     public static void encode(BinaryIO io, LZSSWindowOperator window) throws IOException
     {
-        while (!window.isBufferFull())
-            window.insert(nextByteOrNull(io));
+        window.initForEncoding(nextBytesOrNull(io, Constants.LZSS_BUFFER_SIZE));
+//        while (!window.isBufferFull())
+//            window.insert(nextByteOrNull(io));
 
         while (window.next() != null)
         {
             int[] longestMatch = window.findLongestMatch();
             int offset = longestMatch[1];
-            int length = (longestMatch[0] < THRESHOLD_LENGTH)
+            int length = (longestMatch[0] < Constants.LZSS_THRESHOLD_LENGTH)
                     ? 1
                     : longestMatch[0];
 
-            if (length < THRESHOLD_LENGTH)
+            if (length < Constants.LZSS_THRESHOLD_LENGTH)
                 encodeLiteral(io, window.next());
             else
-                encodePointer(io, offset, length - THRESHOLD_LENGTH);
+                encodePointer(io, offset, length - Constants.LZSS_THRESHOLD_LENGTH);
 
             for (int i = 0; i < length; i++)
                 window.slideForward(nextByteOrNull(io));
         }
 
-        encodePointer(io, 0, 0);
-        io.writeByte((byte) 0);
+        encodeEoF(io);
     }
 
 
@@ -95,7 +93,7 @@ public class LZSSEncoder
         byte[] pointer = io.readBytes(2);
 
         int offset = (pointer[0] << 4 | pointer[1] >> 4 & 0xF) & 0xFFF;
-        int length = (pointer[1] & 0xF) + THRESHOLD_LENGTH;
+        int length = (pointer[1] & 0xF) + Constants.LZSS_THRESHOLD_LENGTH;
 
         if (offset == 0)
             EOF_REACHED = true;
@@ -119,6 +117,12 @@ public class LZSSEncoder
                 .writeByte((byte) (offset << 4 | length));
     }
 
+    private static void encodeEoF(BinaryIO io) throws IOException
+    {
+        encodePointer(io, 0, 0);
+        io.writeByte((byte) 0);
+    }
+
     private static Byte nextByteOrNull(BinaryIO io) throws IOException
     {
         try
@@ -128,5 +132,15 @@ public class LZSSEncoder
         catch (EOFException e) {}
 
         return null;
+    }
+
+    private static Byte[] nextBytesOrNull(BinaryIO io, int count) throws IOException
+    {
+        Byte[] bs = new Byte[count];
+
+        for (int i = 0; i < count; i++)
+            bs[i] = nextByteOrNull(io);
+
+        return bs;
     }
 }

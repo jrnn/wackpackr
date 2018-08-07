@@ -3,6 +3,7 @@ package wackpackr.core;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 
 /**
@@ -15,21 +16,13 @@ import wackpackr.io.BinaryIO;
 public class LZSS
 {
     /**
-     * 32-bit identifier placed at the head of compressed files.
+     * Compresses given file. Writes a 32-bit identifier at the head of the compressed binary, and
+     * a pseudo-EoF indicator at the end, padded with a few 0s (just to be safe).
+     *
+     * @param bytes file to compress, as byte array
+     * @return compressed file, as byte array
+     * @throws IOException
      */
-    private static final long LZSS_TAG = 0x07072017;
-
-    // Pointer reserves 12 bits for offset, i.e. range [0, 4095]. "Zero-offset" is used as EoF
-    // marker. So, dictionary can have max 4095 bytes at once.
-    private static final int PREFIX_SIZE = 4095;
-
-    // because pointer takes 2 bytes, minimum length to encode is 3 bytes ("break-even point")
-    private static final int THRESHOLD_LENGTH = 3;
-
-    // because only length 3 and above is encoded, lookahead buffer has 16 + 2 bytes at once; i.e.
-    // length can be [3, 18]. this needs to be taken into account when writing/reading pointers
-    private static final int BUFFER_SIZE = 15 + THRESHOLD_LENGTH;
-
     public static byte[] compress(byte[] bytes) throws IOException
     {
         try (
@@ -38,7 +31,7 @@ public class LZSS
         {
             try (BinaryIO io = new BinaryIO(in, out))
             {
-                io.write32Bits(LZSS_TAG);
+                io.write32Bits(Constants.LZSS_TAG);
 
                 LZSSEncoder.encode(
                         io,
@@ -49,6 +42,16 @@ public class LZSS
         }
     }
 
+    /**
+     * Decompresses given file. Apart from checking the 32-bit tag in the header, there are
+     * practically no other measures to verify the file. Passing in a valid file is method caller's
+     * responsibility.
+     *
+     * @param bytes file to decompress, as byte array
+     * @return decompressed file, as byte array
+     * @throws IllegalArgumentException if file does not have the correct identifier in its header
+     * @throws IOException
+     */
     public static byte[] decompress(byte[] bytes) throws IOException
     {
         try (
@@ -57,7 +60,7 @@ public class LZSS
         {
             try (BinaryIO io = new BinaryIO(in, out))
             {
-                if (io.read32Bits() != LZSS_TAG)
+                if (io.read32Bits() != Constants.LZSS_TAG)
                     throw new IllegalArgumentException("Not a LZSS compressed file");
 
                 LZSSEncoder.decode(
