@@ -17,6 +17,8 @@ package wackpackr.util;
  * to stored elements. Control of the cursor is delegated fully to the user, i.e. it does not move
  * by itself. Trying to read beyond either end of the cache window results in an exception.
  *
+ * {@code null} elements are permitted.
+ *
  * @author Juho Juurinen
  * @param <E> the class of elements stored in sliding window instance
  */
@@ -61,14 +63,20 @@ public class SlidingWindow<E>
 
     /**
      * Inserts given element at head of window. If maximum window size has been reached, oldest
-     * element at end of window is discarded at the same time.
+     * element at end of window is removed and returned at the same time. Otherwise returns {@code
+     * null}.
      *
      * @param e element to insert
+     * @return element displaced (if any) by insertion, or null
      */
-    public void insert(E e)
+    public E insert(E e)
     {
+        E out = (E) queue[head % size];
+
         queue[head % size] = e;
         head++;
+
+        return out;
     }
 
     /**
@@ -132,15 +140,6 @@ public class SlidingWindow<E>
         throwExceptionIfOutOfBounds(i);
 
         return (E) queue[i % size];
-    }
-
-    public E last()
-    {
-        int i = (head < size)
-                ? 0
-                : head % size;
-
-        return (E) queue[i];
     }
 
 
