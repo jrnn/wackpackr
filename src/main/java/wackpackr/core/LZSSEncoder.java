@@ -16,6 +16,32 @@ public class LZSSEncoder
     // CONSTANTS SHOULD GO INTO ONE PLACE
     private static final int THRESHOLD_LENGTH = 3;
 
+    private static boolean EOF_REACHED;
+
+    /**
+     * Reads and decodes given input stream, at the same time writing the decoded binary to the
+     * given output stream. Requires an {@link LZSSWindowOperator} instance to maintain a sliding
+     * window with random access, in order to decode back references.
+     *
+     * Keeps on reading the input stream until expected pseudo-EoF marker is encountered.
+     *
+     * @param io I/O wrapper that holds both the input and output streams
+     * @param window
+     * @throws IOException
+     */
+    public static void decode(BinaryIO io, LZSSWindowOperator window) throws IOException
+    {
+        EOF_REACHED = false;
+
+        while (!EOF_REACHED)
+        {
+            if (io.readBit())
+                decodePointer(io, window);
+            else
+                decodeLiteral(io, window);
+        }
+    }
+
     /**
      * Writes the given data in encoded -- and, hopefully, compressed -- form into the given output
      * stream. Requires an {@link LZSSWindowOperator} instance to control the "sliding window"
@@ -56,6 +82,27 @@ public class LZSSEncoder
 
     /* --- Private helper methods below, no comments or description given. --- */
 
+
+    private static void decodeLiteral(BinaryIO io, LZSSWindowOperator window) throws IOException
+    {
+        byte b = io.readByte();
+        window.insertAndMove(b);
+        io.writeByte(b);
+    }
+
+    private static void decodePointer(BinaryIO io, LZSSWindowOperator window) throws IOException
+    {
+        byte[] pointer = io.readBytes(2);
+
+        int offset = (pointer[0] << 4 | pointer[1] >> 4 & 0xF) & 0xFFF;
+        int length = (pointer[1] & 0xF) + THRESHOLD_LENGTH;
+
+        if (offset == 0)
+            EOF_REACHED = true;
+        else
+            for (int i = 0; i < length; i++)
+                io.writeByte(window.copyBackReference(offset));
+    }
 
     private static void encodeLiteral(BinaryIO io, byte b) throws IOException
     {

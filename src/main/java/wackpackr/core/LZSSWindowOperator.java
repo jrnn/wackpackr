@@ -37,7 +37,7 @@ public class LZSSWindowOperator
      * with least distance from buffer is returned. Also, if a complete match is found, the search
      * terminates since there is no point in looking any further.
      *
-     * @return length and offset of longest match (as int array)
+     * @return length and offset of longest match (as integer array)
      */
     public int[] findLongestMatch()
     {
@@ -103,5 +103,27 @@ public class LZSSWindowOperator
     public boolean isBufferFull()
     {
         return (window.available() >= BUFFER_SIZE);
+    }
+
+    /**
+     * Copy back reference to head of window. Used when decoding back references.
+     *
+     * @param offset
+     * @return
+     */
+    public Byte copyBackReference(int offset)
+    {
+        Byte b = window.read(-offset);
+
+        window.insert(b);
+        window.move();
+
+        return b;
+    }
+
+    public void insertAndMove(Byte b)
+    {
+        window.insert(b);
+        window.move();
     }
 }

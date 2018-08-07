@@ -13,11 +13,11 @@
 | 29.7. | 5 | 25 | extending Huffman to work more generally with binary data |
 | 30.7. | 2 | 27 | restructuring Huffman code |
 | 31.7. | 4 | 31 | i/o wrapper tweaks and unit testing |
-| 1.8. | 2 | 33 | restructuring Huffman code |
+| 1.8. | 2 | 33 | further restructuring Huffman code |
 | 3.8. | 2 | 35 | huffnode unit testing + quick tests for huffman compressor |
 | 5.8. | 3 | 38 | reading up on LZ77 and LZSS |
 | 5.8. | 2 | 40 | first cut LZ77/SS compress, with wasteful "brute-force" longest match search (not reflected in UI yet) |
 | 6.8. | 2 | 42 | DYI sliding window utility |
 | 6.8. | 2 | 44 | first cut LZ77/SS decompress |
-| 7.8. | 3 | 47 | speed up LZSS by limiting longest match search to positions where first byte matches (now 50x faster on average) |
-| 7.8. | 2 | 49 | restructuring and commenting LZSS |
+| 7.8. | 4 | 48 | speed up LZSS by limiting longest match search to positions where first byte matches (now 50x faster on average) |
+| 7.8. | 2 | 50 | restructuring and commenting LZSS code |

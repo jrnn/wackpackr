@@ -89,6 +89,25 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
+     * Reads and returns requested number of bytes coming up next in input stream.
+     *
+     * @param count number of bytes to read
+     * @return requested number of bytes as array
+     * @throws NullPointerException if no input stream has been set
+     * @throws IOException if there's an error reading the input stream
+     * @throws EOFException if input stream is read through to the end during operation
+     */
+    public byte[] readBytes(int count) throws IOException
+    {
+        byte[] bs = new byte[count];
+
+        for (int i = 0; i < count; i++)
+            bs[i] = readByte();
+
+        return bs;
+    }
+
+    /**
      * Reads and returns the next 32-bit chunk in input stream, cast as a long value.
      *
      * @return the next 32 bits in input stream as long
@@ -148,6 +167,22 @@ public class BinaryIO implements AutoCloseable
         else
             for (int i = 7; i >= 0; i--)
                 writeBit(((b >> i) & 1) == 1);
+
+        return this;
+    }
+
+    /**
+     * Writes an arbitrary number of bytes at the end of the output stream.
+     *
+     * @param bs bytes to write, as byte array
+     * @return this same BinaryIO instance (for method chaining)
+     * @throws NullPointerException if no output stream has been set
+     * @throws IOException if there's an error writing to the output stream
+     */
+    public BinaryIO writeBytes(byte[] bs) throws IOException
+    {
+        for (byte b : bs)
+            writeByte(b);
 
         return this;
     }

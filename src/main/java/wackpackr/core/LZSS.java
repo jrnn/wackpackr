@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import wackpackr.io.BinaryIO;
-import wackpackr.util.SlidingWindow;
 
 /**
  * Compression and decompression with a simplistic implementation of the LZSS algorithm. This class
@@ -45,7 +44,6 @@ public class LZSS
                         io,
                         new LZSSWindowOperator()
                 );
-
                 return out.toByteArray();
             }
         }
@@ -62,66 +60,12 @@ public class LZSS
                 if (io.read32Bits() != LZSS_TAG)
                     throw new IllegalArgumentException("Not a LZSS compressed file");
 
-                decompress(io);
+                LZSSEncoder.decode(
+                        io,
+                        new LZSSWindowOperator()
+                );
                 return out.toByteArray();
             }
         }
-    }
-
-    /* =====  STUFF BELOW THIS LINE BELONGS IN ENCODER  =====*/
-
-    private static void decompress(BinaryIO io) throws IOException
-    {
-        SlidingWindow<Byte> sw = new SlidingWindow(PREFIX_SIZE + BUFFER_SIZE);
-        int length, offset;
-        byte b;
-        byte[] pointer = new byte[2];
-        while (true)
-        {
-            if (io.readBit())
-            {
-                pointer[0] = io.readByte();
-                pointer[1] = io.readByte();
-                offset = readOffsetFromPointer(pointer);
-                length = readLengthFromPointer(pointer) + THRESHOLD_LENGTH;
-                if (offset == 0)    // eof
-                    break;
-                while (length > 0)
-                {
-                    b = sw.read(-offset);
-                    sw.insert(b);
-                    sw.move();
-                    io.writeByte(b);
-                    length--;
-                    //System.out.print((char) b);
-                }
-            }
-            else
-            {
-                b = io.readByte();
-                sw.insert(b);
-                sw.move();
-                io.writeByte(b);
-                //System.out.print((char) b);
-            }
-        }
-    }
-
-    private static byte[] pointerToBytes(int offset, int length)
-    {
-        byte[] bytes = new byte[2];
-        bytes[0] = (byte) (offset >> 4);
-        bytes[1] = (byte) (offset << 4 | length);
-        return bytes;
-    }
-
-    private static int readOffsetFromPointer(byte[] bytes)
-    {
-        return (bytes[0] << 4 | bytes[1] >> 4 & 0xF) & 0xFFF;
-    }
-
-    private static int readLengthFromPointer(byte[] bytes)
-    {
-        return bytes[1] & 0xF;
     }
 }
