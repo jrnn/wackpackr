@@ -134,6 +134,15 @@ public class SlidingWindow<E>
         return (E) queue[i % size];
     }
 
+    public E last()
+    {
+        int i = (head < size)
+                ? 0
+                : head % size;
+
+        return (E) queue[i];
+    }
+
 
     /* --- Private helper methods below, no comments or description given. --- */
 

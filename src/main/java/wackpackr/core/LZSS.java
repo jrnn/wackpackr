@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.SlidingWindow;
 
@@ -66,6 +67,10 @@ public class LZSS
     private static void compress(BinaryIO io) throws IOException
     {
         SlidingWindow<Byte> sw = new SlidingWindow(PREFIX_SIZE + BUFFER_SIZE);
+        ArrayDeque<Integer>[] Q = new ArrayDeque[256];
+
+        for (int i = 0; i < 256; i++)
+            Q[i] = new ArrayDeque<>();
 
         for (int i = 0; i < BUFFER_SIZE; i++)
             ioToSw(sw, io);
@@ -74,10 +79,13 @@ public class LZSS
         {
             int bestLength = 0;
             int bestOffset = 0;
-            int maxOffset = Math.min(sw.cursor(), PREFIX_SIZE - 1);  // offset = 0 reserved for eof
-            for (int offset = 1; offset <= maxOffset; offset++)
+
+            //System.out.println("head of buffer = [" + ((char) (int) sw.read()) + "] start positions in prefix = " + Q[sw.read() + 128]);
+
+            for (Integer pos : Q[sw.read() + 128])
             {
                 int length = 0;
+                int offset = sw.cursor() - pos;
                 int maxLength = Math.min(sw.available(), BUFFER_SIZE);
 
                 while (length <= maxLength)
@@ -105,9 +113,19 @@ public class LZSS
                         .writeByte(sw.read());
                 bestLength = 1;
             }
-            sw.move(bestLength);
-            for (int i = 0; i < bestLength; i++)
-                ioToSw(sw, io);
+            for (int q = 0; q < bestLength; q++)  // "slide forward" one step
+            {
+                if (sw.last() != null)
+                    Q[sw.last() + 128].poll();
+                Q[sw.read() + 128].offer(sw.cursor());
+
+                try
+                {
+                    sw.insert((byte) io.readByte());
+                } catch (EOFException e) {}
+
+                sw.move();
+            }
         }
         // use a "pointless pointer" (0-0) as EoF marker + pad with a few zeroes
         writePointer(0, 0, io);
