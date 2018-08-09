@@ -1,7 +1,5 @@
 package wackpackr.core;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
@@ -25,20 +23,15 @@ public class LZSS
      */
     public static byte[] compress(byte[] bytes) throws IOException
     {
-        try (
-                ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-                ByteArrayOutputStream out = new ByteArrayOutputStream())
+        try (BinaryIO io = new BinaryIO(bytes))
         {
-            try (BinaryIO io = new BinaryIO(in, out))
-            {
-                io.write32Bits(Constants.LZSS_TAG);
+            io.write32Bits(Constants.LZSS_TAG);
 
-                LZSSEncoder.encode(
-                        io,
-                        new LZSSWindowOperator()
-                );
-                return out.toByteArray();
-            }
+            LZSSEncoder.encode(
+                    io,
+                    new LZSSWindowOperator()
+            );
+            return io.getBytesOut();
         }
     }
 
@@ -54,21 +47,16 @@ public class LZSS
      */
     public static byte[] decompress(byte[] bytes) throws IOException
     {
-        try (
-                ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-                ByteArrayOutputStream out = new ByteArrayOutputStream())
+        try (BinaryIO io = new BinaryIO(bytes))
         {
-            try (BinaryIO io = new BinaryIO(in, out))
-            {
-                if (io.read32Bits() != Constants.LZSS_TAG)
-                    throw new IllegalArgumentException("Not a LZSS compressed file");
+            if (io.read32Bits() != Constants.LZSS_TAG)
+                throw new IllegalArgumentException("Not a LZSS compressed file");
 
-                LZSSEncoder.decode(
-                        io,
-                        new LZSSWindowOperator()
-                );
-                return out.toByteArray();
-            }
+            LZSSEncoder.decode(
+                    io,
+                    new LZSSWindowOperator()
+            );
+            return io.getBytesOut();
         }
     }
 }

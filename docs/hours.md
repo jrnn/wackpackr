@@ -21,3 +21,4 @@
 | 6.8. | 2 | 44 | first cut LZ77/SS decompress |
 | 7.8. | 4 | 48 | speed up LZSS by limiting longest match search to positions where first byte matches (now 50x faster on average) |
 | 7.8. | 2 | 50 | restructuring and commenting LZSS code |
+| 9.8. | 1 | 51 | baking ByteArrayI/O into custom i/o wrapper class, extending unit tests |

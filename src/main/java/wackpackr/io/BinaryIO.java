@@ -1,45 +1,36 @@
 package wackpackr.io;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
- * Combined wrapper for Input- and OutputStreams, that allows reading and writing one bit at a time,
- * while also offering the same methods for byte-size chunks, irrespective of the byte boundaries of
- * the underlying streams.
+ * Combined wrapper for I/O streams, that allows reading and writing one bit at a time, while also
+ * offering the same methods for byte-size chunks, irrespective of the byte boundaries of the
+ * underlying streams.
  *
- * Possible to initiate with just the input or output stream, or both.
+ * Possible to initiate with or without an input stream.
  *
  * @author Juho Juurinen
  */
 public class BinaryIO implements AutoCloseable
 {
-    private final InputStream in;
+    private ByteArrayInputStream in = null;
     private int bufferIn = -1;
     private int offsetIn = 0;
 
-    private final OutputStream out;
+    private final ByteArrayOutputStream out = new ByteArrayOutputStream();
     private int bufferOut = 0;
     private int offsetOut = 0;
 
-    public BinaryIO(InputStream in)
+    public BinaryIO()
     {
-        this.in = in;
-        this.out = null;
     }
 
-    public BinaryIO(OutputStream out)
+    public BinaryIO(byte[] bytes)
     {
-        this.in = null;
-        this.out = out;
-    }
-
-    public BinaryIO(InputStream in, OutputStream out)
-    {
-        this.in = in;
-        this.out = out;
+        this.in = new ByteArrayInputStream(bytes);
     }
 
     /**
@@ -133,7 +124,6 @@ public class BinaryIO implements AutoCloseable
      *
      * @param b bit to write as boolean
      * @return this same BinaryIO instance (for method chaining)
-     * @throws NullPointerException if no output stream has been set
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO writeBit(boolean b) throws IOException
@@ -157,7 +147,6 @@ public class BinaryIO implements AutoCloseable
      *
      * @param b byte to write
      * @return this same BinaryIO instance (for method chaining)
-     * @throws NullPointerException if no output stream has been set
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO writeByte(byte b) throws IOException
@@ -176,7 +165,6 @@ public class BinaryIO implements AutoCloseable
      *
      * @param bs bytes to write, as byte array
      * @return this same BinaryIO instance (for method chaining)
-     * @throws NullPointerException if no output stream has been set
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO writeBytes(byte[] bs) throws IOException
@@ -192,7 +180,6 @@ public class BinaryIO implements AutoCloseable
      *
      * @param l 32 bits of data to write, given as long
      * @return this same BinaryIO instance (for method chaining)
-     * @throws NullPointerException if no output stream has been set
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO write32Bits(long l) throws IOException
@@ -210,13 +197,22 @@ public class BinaryIO implements AutoCloseable
         return this;
     }
 
+    /**
+     * Reads and returns current contents of the underlying output stream.
+     *
+     * @return contents of the underlying output stream, as byte array
+     */
+    public byte[] getBytesOut()
+    {
+        return out.toByteArray();
+    }
+
     @Override
     public void close() throws IOException
     {
         if (in != null)
             in.close();
 
-        if (out != null)
-            out.close();
+        out.close();
     }
 }

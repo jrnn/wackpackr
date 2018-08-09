@@ -1,7 +1,5 @@
 package wackpackr.core;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
@@ -29,18 +27,15 @@ public class Huffman
      */
     public static byte[] compress(byte[] bytes) throws IOException
     {
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream())
+        try (BinaryIO io = new BinaryIO())
         {
-            try (BinaryIO io = new BinaryIO(out))
-            {
-                io.write32Bits(Constants.HUFFMAN_TAG);
+            io.write32Bits(Constants.HUFFMAN_TAG);
 
-                HuffNode root = HuffTreeParser.buildTree(bytes);
-                HuffTreeParser.encodeTree(root, io);
+            HuffNode root = HuffTreeParser.buildTree(bytes);
+            HuffTreeParser.encodeTree(root, io);
 
-                HuffEncoder.encode(bytes, root, io);
-                return out.toByteArray();
-            }
+            HuffEncoder.encode(bytes, root, io);
+            return io.getBytesOut();
         }
     }
 
@@ -59,20 +54,15 @@ public class Huffman
      */
     public static byte[] decompress(byte[] bytes) throws IOException
     {
-        try (
-                ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-                ByteArrayOutputStream out = new ByteArrayOutputStream())
+        try (BinaryIO io = new BinaryIO(bytes))
         {
-            try (BinaryIO io = new BinaryIO(in, out))
-            {
-                if (io.read32Bits() != Constants.HUFFMAN_TAG)
-                    throw new IllegalArgumentException("Not a Huffman compressed file");
+            if (io.read32Bits() != Constants.HUFFMAN_TAG)
+                throw new IllegalArgumentException("Not a Huffman compressed file");
 
-                HuffNode root = HuffTreeParser.decodeTree(io);
-                HuffEncoder.decode(root, io);
+            HuffNode root = HuffTreeParser.decodeTree(io);
+            HuffEncoder.decode(root, io);
 
-                return out.toByteArray();
-            }
+            return io.getBytesOut();
         }
     }
 }
