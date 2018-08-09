@@ -136,7 +136,7 @@ public class SlidingWindow<E>
 
     private void throwExceptionIfOutOfBounds(int i)
     {
-        if (i < 0 || i < head - size || i >= head)
+        if (i < 0 || i < head - size || i > head)
             throw new IndexOutOfBoundsException();
     }
 }

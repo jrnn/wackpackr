@@ -43,4 +43,11 @@ public class HuffmanTest
                 )
         );
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void throwsExceptionIfIncorrectTagInHeader() throws IOException
+    {
+        byte[] invalid = new byte[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        Huffman.decompress(invalid);
+    }
 }
