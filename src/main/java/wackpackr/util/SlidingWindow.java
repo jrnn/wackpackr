@@ -3,19 +3,16 @@ package wackpackr.util;
 /**
  * Simple utility that mimics a kind of "sliding window policy" cache, that only retains the latest
  * N inbound elements, where N is the given cache size. More precisely, once the cache is full, it
- * dumps oldest elements from one end whenever new ones are inserted at the other.
- *
- * Resembles a {@Link Queue} due to the FIFO principle, but is not meant as such: supports only
- * enqueueing, not dequeueing elements. However, allows reading any elements within the cache window
- * in a similar vein as most I/O tools (such as {@Link RandomAccessFile}).
+ * dumps oldest elements from one end whenever new ones are inserted at the other (FIFO).
  *
  * In practice the cache is implemented as a circular array. Whenever the underlying array is full,
  * the head pointer wraps around, so that each new element overwrites the oldest element in queue.
  * Cache size is determined at instantiation, and cannot be changed thereafter.
  *
- * Beside the head pointer, there is a separate read pointer ("cursor") that allows arbitrary access
- * to stored elements. Control of the cursor is delegated fully to the user, i.e. it does not move
- * by itself. Trying to read beyond either end of the cache window results in an exception.
+ * Beside the head pointer, there is a separate read pointer ("cursor") that allows random access
+ * to the cache window, similar to most I/O tools (such as {@Link RandomAccessFile}). Control of the
+ * cursor is delegated fully to the user, i.e. it does not move by itself. Trying to read or move
+ * beyond either end of the cache window results in an exception.
  *
  * {@code null} elements are permitted.
  *
@@ -47,6 +44,9 @@ public class SlidingWindow<E>
 
     public SlidingWindow(int windowSize)
     {
+        if (windowSize < 1)
+            throw new IllegalArgumentException();
+
         this.size = windowSize;
         this.queue = new Object[size];
     }
@@ -63,8 +63,7 @@ public class SlidingWindow<E>
 
     /**
      * Inserts given element at head of window. If maximum window size has been reached, oldest
-     * element at end of window is removed and returned at the same time. Otherwise returns {@code
-     * null}.
+     * element at end is removed and returned at the same time. Otherwise returns {@code null}.
      *
      * @param e element to insert
      * @return element displaced (if any) by insertion, or null
@@ -77,17 +76,6 @@ public class SlidingWindow<E>
         head++;
 
         return out;
-    }
-
-    /**
-     * Returns the number of elements that can be read from current cursor position. In particular,
-     * returns 0 when cursor is at the last possible position.
-     *
-     * @return distance from current cursor position to last inserted element
-     */
-    public int available()
-    {
-        return head - cursor - 1;
     }
 
     /**
@@ -148,7 +136,7 @@ public class SlidingWindow<E>
 
     private void throwExceptionIfOutOfBounds(int i)
     {
-        if (i < 0 || i < head - size || i > head)
+        if (i < 0 || i < head - size || i >= head)
             throw new IndexOutOfBoundsException();
     }
 }
