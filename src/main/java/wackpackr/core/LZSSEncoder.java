@@ -53,10 +53,6 @@ public class LZSSEncoder
      */
     public static void encode(BinaryIO io, LZSSWindowOperator window) throws IOException
     {
-        window.initForEncoding(nextBytesOrNull(io, Constants.LZSS_BUFFER_SIZE));
-//        while (!window.isBufferFull())
-//            window.insert(nextByteOrNull(io));
-
         while (window.next() != null)
         {
             int[] longestMatch = window.findLongestMatch();
@@ -99,7 +95,7 @@ public class LZSSEncoder
             EOF_REACHED = true;
         else
             for (int i = 0; i < length; i++)
-                io.writeByte(window.copyBackReference(offset));
+                io.writeByte(window.copyBackReference(offset - 1));
     }
 
     private static void encodeLiteral(BinaryIO io, byte b) throws IOException
@@ -132,15 +128,5 @@ public class LZSSEncoder
         catch (EOFException e) {}
 
         return null;
-    }
-
-    private static Byte[] nextBytesOrNull(BinaryIO io, int count) throws IOException
-    {
-        Byte[] bs = new Byte[count];
-
-        for (int i = 0; i < count; i++)
-            bs[i] = nextByteOrNull(io);
-
-        return bs;
     }
 }

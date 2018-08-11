@@ -3,10 +3,11 @@ package wackpackr.util;
 /**
  * Simple utility that mimics a kind of "sliding window policy" cache, that only retains the latest
  * N inbound elements, where N is the given cache size. More precisely, once the cache is full, it
- * dumps oldest elements from one end whenever new ones are inserted at the other (FIFO).
+ * dumps oldest elements from one end as new ones are inserted at the other (FIFO).
  *
  * In practice the cache is implemented as a circular array. Whenever the underlying array is full,
  * the head pointer wraps around, so that each new element overwrites the oldest element in queue.
+ *
  * Cache size is determined at instantiation, and cannot be changed thereafter.
  *
  * Beside the head pointer, there is a separate read pointer ("cursor") that allows random access
@@ -37,10 +38,11 @@ public class SlidingWindow<E>
     private int cursor = 0;
 
     /**
-     * Number of elements inserted so far. Also, array index to which next inserted element is
-     * written. Due to circular access, must use modulo "window size" when writing.
+     * Array index to which last inserted element was written. Also, tells how many elements have
+     * been inserted altogether (minus one). Due to circular access, must use modulo "window size"
+     * when reading from or writing to the array.
      */
-    private int head = 0;
+    private int head = -1;
 
     public SlidingWindow(int windowSize)
     {
@@ -70,10 +72,10 @@ public class SlidingWindow<E>
      */
     public E insert(E e)
     {
-        E out = (E) queue[head % size];
-
-        queue[head % size] = e;
         head++;
+
+        E out = (E) queue[head % size];
+        queue[head % size] = e;
 
         return out;
     }

@@ -24,3 +24,5 @@
 | 9.8. | 1 | 51 | baking ByteArrayI/O into custom i/o wrapper class, extending unit tests |
 | 9.8. | 1 | 52 | sliding window unit testing |
 | 9.8. | 1 | 53 | quick tests for LZSS compressor |
+| 11.8. | 3 | 56 | speed up LZSS further by doing pattern matching on three-byte sequences (average compression time reduced by half) |
+| 11.8. | 2 | 58 | DYI hash table with very limited usability |

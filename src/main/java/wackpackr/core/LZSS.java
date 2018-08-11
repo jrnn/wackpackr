@@ -26,10 +26,11 @@ public class LZSS
         try (BinaryIO io = new BinaryIO(bytes))
         {
             io.write32Bits(Constants.LZSS_TAG);
+            byte[] initialBuffer = io.readBytes(Constants.LZSS_BUFFER_SIZE);
 
             LZSSEncoder.encode(
                     io,
-                    new LZSSWindowOperator()
+                    new LZSSWindowOperator(initialBuffer)
             );
             return io.getBytesOut();
         }

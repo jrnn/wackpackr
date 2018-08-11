@@ -133,7 +133,7 @@ public class SlidingWindowTest
         int exceptions = 0;
         sw.insert(1337);
 
-        for (int offset : new int[]{ -1, 2 })
+        for (int offset : new int[]{ -1, 1 })
             if (throwsExpectedExceptionOnMove(
                     offset,
                     IndexOutOfBoundsException.class))
@@ -142,7 +142,7 @@ public class SlidingWindowTest
         for (int i = 0; i < SIZE; i++)
             sw.insert(1337);
 
-        for (int offset : new int[]{ -SIZE, SIZE + 2 })
+        for (int offset : new int[]{ -SIZE, SIZE + 1 })
             if (throwsExpectedExceptionOnMove(
                     offset,
                     IndexOutOfBoundsException.class))
