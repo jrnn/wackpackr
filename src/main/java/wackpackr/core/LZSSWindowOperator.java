@@ -73,7 +73,7 @@ public class LZSSWindowOperator
                 window.read(0),
                 window.read(1),
                 window.read(2)
-        );
+        ).toArrayReverse();
 
         for (Object p : ps)
         {

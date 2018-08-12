@@ -52,9 +52,9 @@ public class ChainedHashTable<E>
      * @param key byte sequence of arbitrary length
      * @return values associated to the given key's hash
      */
-    public Object[] getValues(byte... key)
+    public CircularDoublyLinkedList<E> getValues(byte... key)
     {
-        return safeGet(hash(key)).toArray();
+        return safeGet(hash(key));
     }
 
     /**
@@ -65,7 +65,7 @@ public class ChainedHashTable<E>
      */
     public void insert(E value, byte... key)
     {
-        safeGet(hash(key)).insert(value);
+        safeGet(hash(key)).add(value);
     }
 
     /**
@@ -78,7 +78,7 @@ public class ChainedHashTable<E>
      */
     public void deleteOldest(byte... key)
     {
-        safeGet(hash(key)).removeLast();
+        safeGet(hash(key)).removeFirst();
     }
 
 

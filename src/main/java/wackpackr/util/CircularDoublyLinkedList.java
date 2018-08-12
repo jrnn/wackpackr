@@ -1,18 +1,15 @@
 package wackpackr.util;
 
 /**
- * Limited application of a circular, doubly linked list with a sentinel node. List operations are
- * provided only to the extent needed for purposes of the wackpackr project.
+ * Limited application of a circular, doubly linked list with a sentinel node. Offers only a few
+ * basic operations, nowhere near as extensive as e.g. the {@link java.util.List} interface.
  *
- * As is conventional of linked lists, elements are always added to the beginning of the list, so
- * that they are ordered from most recently added to the "oldest" one. This is the order given e.g.
- * on calling {@link #toArray()}.
+ * Elements are always added to the end of the list, and hence ordered "chronologically": from the
+ * oldest to the most recently added element. Duplicate and {@code null} elements are permitted.
  *
  * Performance presumably is what can be expected from a linked list with zero optimisation. In
- * other words, this is not a smart choice for anything, apart from contexts where the use of linked
- * lists in particular can be justified.
- *
- * {@code null} elements are permitted.
+ * other words, this is not a smart choice for anything, unless the use of a linked list in
+ * particular can be justified.
  *
  * @author Juho Juurinen
  * @param <E> the class of elements stored in a list instance
@@ -20,9 +17,9 @@ package wackpackr.util;
 public class CircularDoublyLinkedList<E>
 {
     /**
-     * Dummy node that marks the beginning and end of the list, such that {@code sentinel.next} is
-     * the first and {@code sentinel.prev} is the last element. In particular, when the list is
-     * empty, {@code sentinel.next = sentinel.prev = sentinel}.
+     * Dummy node that marks the beginning and end of the list, such that {@code sentinel.next}
+     * points at the first and {@code sentinel.prev} at the last element. In particular, when the
+     * list is empty, {@code sentinel.prev == sentinel == sentinel.next}.
      */
     private final Node sentinel = new Node();
 
@@ -32,23 +29,73 @@ public class CircularDoublyLinkedList<E>
     private int size = 0;
 
     /**
-     * Inserts the given element at the beginning of the list.
+     * Returns the number of elements in the list.
      *
-     * @param e element to insert to list
+     * @return number of elements in the list
      */
-    public void insert(E e)
+    public int size()
+    {
+        return size;
+    }
+
+    /**
+     * Returns {@code true} if and only if the list contains exactly zero elements.
+     *
+     * @return true if the list is empty
+     */
+    public boolean isEmpty()
+    {
+        return (size == 0);
+    }
+
+    /**
+     * Returns {@code true} if the given element occurs at least once in the list.
+     *
+     * @param e element whose presence is tested
+     * @return true if the list contains given element
+     */
+    public boolean contains(E e)
+    {
+        return (search(e) != null);
+    }
+
+    /**
+     * Appends the given element to the end of the list.
+     *
+     * @param e element to add to the list
+     */
+    public void add(E e)
     {
         Node node = new Node(e);
         size++;
 
-        sentinel.next.prev = node;
-        sentinel.next = node;
+        sentinel.prev.next = node;
+        sentinel.prev = node;
     }
 
     /**
-     * Reads through the list starting from the most recently added element, and removes the first
-     * occurrence of the given element, if one exists. The list remains unchanged if it does not
-     * contain the given element.
+     * Returns the element at the given position in the list.
+     *
+     * @param index zero-based index of the element to return
+     * @return element at the given position in the list
+     * @throws IndexOutOfBoundsException if given index is beyond the list range
+     */
+    public E get(int index)
+    {
+        if (index < 0 || index >= size)
+            throw new IndexOutOfBoundsException();
+
+        Node node = sentinel.next;
+
+        for (; index > 0; index--)
+            node = node.next;
+
+        return node.elem;
+    }
+
+    /**
+     * Reads through the list and removes the first occurrence of the given element, if one exists.
+     * The list remains unchanged if it does not contain the given element.
      *
      * @param e element to remove from list, if present
      */
@@ -58,18 +105,28 @@ public class CircularDoublyLinkedList<E>
     }
 
     /**
-     * Removes the element in the last position of the list: that is, the "oldest" of all elements
+     * Removes the element at the beginning of the list: that is, the "oldest" of all elements in
+     * the list. If the list is empty, nothing happens.
+     */
+    public void removeFirst()
+    {
+        if (!isEmpty())
+            deleteNode(sentinel.next);
+    }
+
+    /**
+     * Removes the element at the end of the list: that is, the most recently added of all elements
      * in the list. If the list is empty, nothing happens.
      */
     public void removeLast()
     {
-        if (sentinel.prev != sentinel)
+        if (!isEmpty())
             deleteNode(sentinel.prev);
     }
 
     /**
-     * Returns all elements in this list as an array, ordered from the most recently added to the
-     * "oldest" one.
+     * Returns all elements in this list as an array in proper sequence: that is, in the order they
+     * were added to the list.
      *
      * There are no references between the list elements and the returned array, so the caller can
      * safely modify the array without fear of undesired side-effects.
@@ -88,10 +145,30 @@ public class CircularDoublyLinkedList<E>
     }
 
     /**
-     * Nested helper class restricted only for use by the parent class. Describes a minimal list
-     * node, instances of which are used as building blocks of the list. There are separate
-     * constructors for the "pseudo" sentinel node, vs. actual nodes that hold list elements. The
-     * linking of new nodes at head of the list is handled by the constructor.
+     * Returns all elements in this list as an array, ordered from the last element on the list to
+     * the first: that is, from the most recently added to the oldest one.
+     *
+     * There are no references between the list elements and the returned array, so the caller can
+     * safely modify the array without fear of undesired side-effects.
+     *
+     * @return an array containing all list elements from last to first
+     */
+    public Object[] toArrayReverse()
+    {
+        int i = 0;
+        Object[] elems = new Object[size];
+
+        for (Node node = sentinel.prev; node != sentinel; node = node.prev)
+            elems[i++] = node.elem;
+
+        return elems;
+    }
+
+    /**
+     * Nested helper class restricted only for use by the parent class. Defines a minimal list node,
+     * instances of which are used as building blocks of the list. There are separate constructors
+     * for the pseudo sentinel node, vs. actual nodes that hold list elements. The linking of new
+     * nodes at the end of the list is handled by the constructor.
      */
     private final class Node
     {
@@ -104,11 +181,11 @@ public class CircularDoublyLinkedList<E>
             this.prev = this.next = this;
         }
 
-        Node(E e)
+        Node(E elem)
         {
-            this.elem = e;
-            this.prev = sentinel;
-            this.next = sentinel.next;
+            this.elem = elem;
+            this.prev = sentinel.prev;
+            this.next = sentinel;
         }
     }
 
@@ -120,12 +197,25 @@ public class CircularDoublyLinkedList<E>
     {
         Node node = sentinel.next;
 
-        while (node != sentinel && !e.equals(node.elem))
-            node = node.next;
+        if (e == null)
+            node = searchNull();
+        else
+            while (node != sentinel && !e.equals(node.elem))
+                node = node.next;
 
         return (node == sentinel)
                 ? null
                 : node;
+    }
+
+    private Node searchNull()
+    {
+        Node node = sentinel.next;
+
+        while (node != sentinel && node.elem != null)
+            node = node.next;
+
+        return node;
     }
 
     private void deleteNode(Node node)
