@@ -1,6 +1,5 @@
 package wackpackr.core;
 
-import java.util.Iterator;
 import wackpackr.config.Constants;
 import wackpackr.util.ChainedHashTable;
 import wackpackr.util.SlidingWindow;
@@ -70,16 +69,16 @@ public class LZSSWindowOperator
 
         int maxLength = 0;
         int maxOffset = 0;
-        Iterator<Integer> iter = positions.getValues(
+        Object[] ps = positions.getValues(
                 window.read(0),
                 window.read(1),
                 window.read(2)
-        ).descendingIterator();
+        );
 
-        while (iter.hasNext())
+        for (Object p : ps)
         {
             int length = 0;
-            int offset = window.cursor() - iter.next();
+            int offset = window.cursor() - (int) p;
 
             while (length < Constants.LZSS_BUFFER_SIZE)
             {
@@ -124,7 +123,7 @@ public class LZSSWindowOperator
 
         if (out != null)
         {
-            positions.deleteFirst(
+            positions.deleteOldest(
                     out,
                     window.read(-Constants.LZSS_PREFIX_SIZE + 1),
                     window.read(-Constants.LZSS_PREFIX_SIZE + 2)

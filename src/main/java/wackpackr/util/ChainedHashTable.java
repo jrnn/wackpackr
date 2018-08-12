@@ -1,17 +1,15 @@
 package wackpackr.util;
 
-import java.util.ArrayDeque;
-
 /**
  * Limited application of a hash table for storing key-value mappings, specifically using byte
  * sequences (of arbitrary length) as keys.
  *
  * Hash collisions are handled with separate chaining, i.e. elements whose key hashes to the same
- * bucket are stored in a sequential list (currently a queue, to be replaced with some DYI thing).
+ * bucket are stored sequentially in a linked list.
  *
- * The backing array is not dynamically resized. Size must be given at instantiation, and remains
- * fixed thereafter. For this reason, this class should not be used unless the maximum number of
- * elements is definitely known in advance, so that the size can be set optimally.
+ * The backing array is not dynamically resized. Hash table size must be given at instantiation, and
+ * remains fixed thereafter. For this reason, this class should not be used unless the maximum
+ * number of elements is definitely known in advance, so that the size can be set optimally.
  *
  * For hashing, the technique used in {@link String} is blatantly copied, because (based on some
  * quick testing) it results in a very uniform distribution. So, as long as table size is sensibly
@@ -26,7 +24,7 @@ public class ChainedHashTable<E>
      * Underlying array whose indexes connect hash values to lists where elements of a certain key
      * are stored.
      */
-    private final ArrayDeque<E>[] buckets;
+    private final CircularDoublyLinkedList<E>[] buckets;
 
     /**
      * Number of buckets: that is, size of the backing array. Used as modulo when hashing.
@@ -44,19 +42,19 @@ public class ChainedHashTable<E>
     public ChainedHashTable(int size)
     {
         this.size = size;
-        this.buckets = new ArrayDeque[size];
+        this.buckets = new CircularDoublyLinkedList[size];
     }
 
     /**
-     * Returns a list containing all elements that associate to the given key's hash value. If no
-     * such elements exist, returns an empty list.
+     * Returns an array containing all elements that associate to the given key's hash value. If no
+     * such elements exist, returns an empty array.
      *
      * @param key byte sequence of arbitrary length
      * @return values associated to the given key's hash
      */
-    public ArrayDeque<E> getValues(byte... key)
+    public Object[] getValues(byte... key)
     {
-        return safeGet(hash(key));
+        return safeGet(hash(key)).toArray();
     }
 
     /**
@@ -67,18 +65,20 @@ public class ChainedHashTable<E>
      */
     public void insert(E value, byte... key)
     {
-        safeGet(hash(key)).add(value);
+        safeGet(hash(key)).insert(value);
     }
 
     /**
-     * Deletes the "oldest" element associated to the given key's hash value. This is a dangerous
-     * method because there's no guarantee which element exactly is deleted, due to hash collisions.
+     * Deletes the "oldest" element associated to the given key's hash value.
+     *
+     * Note that this is a dangerous method, because there's no guarantee which element exactly is
+     * deleted due to hash collisions. Use only if you understand the implications.
      *
      * @param key byte sequence of arbitrary length
      */
-    public void deleteFirst(byte... key)
+    public void deleteOldest(byte... key)
     {
-        safeGet(hash(key)).removeFirst();
+        safeGet(hash(key)).removeLast();
     }
 
 
@@ -95,10 +95,10 @@ public class ChainedHashTable<E>
         return (h % size + size) % size;
     }
 
-    private ArrayDeque<E> safeGet(int i)
+    private CircularDoublyLinkedList<E> safeGet(int i)
     {
         if (buckets[i] == null)
-            buckets[i] = new ArrayDeque<>();
+            buckets[i] = new CircularDoublyLinkedList<>();
 
         return buckets[i];
     }
