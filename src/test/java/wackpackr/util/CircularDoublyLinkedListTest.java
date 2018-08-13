@@ -41,7 +41,6 @@ public class CircularDoublyLinkedListTest
             L.add(i);
             Assert.assertTrue(L.size() == i);
         }
-
         for (int i = N; i > 0; i--)
         {
             Assert.assertTrue(L.size() == i);

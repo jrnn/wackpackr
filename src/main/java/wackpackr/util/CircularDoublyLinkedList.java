@@ -8,8 +8,8 @@ package wackpackr.util;
  * oldest to the most recently added element. Duplicate and {@code null} elements are permitted.
  *
  * Performance presumably is what can be expected from a linked list with zero optimisation. In
- * other words, this is not a smart choice for anything, unless the use of a linked list in
- * particular can be justified.
+ * other words, this is not a smart choice for anything, unless using a linked list in particular
+ * can be justified.
  *
  * @author Juho Juurinen
  * @param <E> the class of elements stored in a list instance
@@ -45,7 +45,7 @@ public class CircularDoublyLinkedList<E>
      */
     public boolean isEmpty()
     {
-        return (size == 0);
+        return (size < 1);
     }
 
     /**
@@ -190,7 +190,7 @@ public class CircularDoublyLinkedList<E>
     }
 
 
-    /* --- Private helper methods below, no comments or description given. --- */
+    /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
     private Node search(E e)

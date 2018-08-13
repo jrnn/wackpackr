@@ -16,7 +16,7 @@ package wackpackr.util;
  * set, basic operations of adding, searching, and removing should work in constant time.
  *
  * @author Juho Juurinen
- * @param <E> the class of the values stored in a hash table instance
+ * @param <E> the class of elements stored in a hash table instance
  */
 public class ChainedHashTable<E>
 {

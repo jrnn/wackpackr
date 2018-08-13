@@ -18,12 +18,12 @@ package wackpackr.util;
  * {@code null} elements are permitted.
  *
  * @author Juho Juurinen
- * @param <E> the class of elements stored in sliding window instance
+ * @param <E> the class of elements stored in a sliding window instance
  */
 public class SlidingWindow<E>
 {
     /**
-     * Array for storing elements, using circular access.
+     * Backing array for storing elements, using circular access.
      */
     private final Object[] queue;
 
@@ -68,7 +68,7 @@ public class SlidingWindow<E>
      * element at end is removed and returned at the same time. Otherwise returns {@code null}.
      *
      * @param e element to insert
-     * @return element displaced (if any) by insertion, or null
+     * @return element displaced by insertion, or null
      */
     public E insert(E e)
     {
@@ -133,7 +133,7 @@ public class SlidingWindow<E>
     }
 
 
-    /* --- Private helper methods below, no comments or description given. --- */
+    /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
     private void throwExceptionIfOutOfBounds(int i)

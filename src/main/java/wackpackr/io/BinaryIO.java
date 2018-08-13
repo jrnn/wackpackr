@@ -24,9 +24,7 @@ public class BinaryIO implements AutoCloseable
     private int bufferOut = 0;
     private int offsetOut = 0;
 
-    public BinaryIO()
-    {
-    }
+    public BinaryIO() {}
 
     public BinaryIO(byte[] bytes)
     {
@@ -34,7 +32,7 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Reads and returns the next bit in input stream.
+     * Reads and returns the next bit in the input stream.
      *
      * @return the next bit in input stream as boolean
      * @throws NullPointerException if no input stream has been set
@@ -52,14 +50,14 @@ public class BinaryIO implements AutoCloseable
             throw new EOFException();
 
         offsetIn--;
-        return ((bufferIn >> offsetIn) & 1) == 1;
+        return (((bufferIn >> offsetIn) & 1) == 1);
     }
 
     /**
-     * Reads and returns the next byte in input stream, irrespective of where the read pointer is
-     * within current byte buffer (bitwise trickery).
+     * Reads and returns the next byte in the input stream, irrespective of where the read pointer
+     * is within current byte buffer.
      *
-     * @return the next byte in input stream as integer value
+     * @return the next byte in input stream
      * @throws NullPointerException if no input stream has been set
      * @throws IOException if there's an error reading the input stream
      * @throws EOFException if input stream has been read through to the end
@@ -80,7 +78,7 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Reads and returns requested number of bytes coming up next in input stream.
+     * Reads and returns requested number of bytes coming up next in the input stream.
      *
      * @param count number of bytes to read
      * @return requested number of bytes as array
@@ -99,7 +97,7 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Reads and returns the next 32-bit chunk in input stream, cast as a long value.
+     * Reads and returns the next 32-bit chunk in the input stream, cast as a long value.
      *
      * @return the next 32 bits in input stream as long
      * @throws NullPointerException if no input stream has been set
@@ -163,7 +161,7 @@ public class BinaryIO implements AutoCloseable
     /**
      * Writes an arbitrary number of bytes at the end of the output stream.
      *
-     * @param bs bytes to write, as byte array
+     * @param bs bytes to write, as array
      * @return this same BinaryIO instance (for method chaining)
      * @throws IOException if there's an error writing to the output stream
      */
@@ -178,7 +176,7 @@ public class BinaryIO implements AutoCloseable
     /**
      * Writes a 32-bit chunk at the end of the output stream.
      *
-     * @param l 32 bits of data to write, given as long
+     * @param l 32 bits of data to write, as long
      * @return this same BinaryIO instance (for method chaining)
      * @throws IOException if there's an error writing to the output stream
      */
@@ -191,16 +189,15 @@ public class BinaryIO implements AutoCloseable
             bs[i] = (byte) (l & 0xFF);
             l >>= 8;
         }
-        for (byte b : bs)
-            writeByte(b);
 
+        writeBytes(bs);
         return this;
     }
 
     /**
      * Reads and returns current contents of the underlying output stream.
      *
-     * @return contents of the underlying output stream, as byte array
+     * @return contents of the output stream, as byte array
      */
     public byte[] getBytesOut()
     {

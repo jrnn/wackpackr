@@ -1,6 +1,5 @@
 package wackpackr.util;
 
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 /**
@@ -13,9 +12,10 @@ import java.util.NoSuchElementException;
  * {@code null} elements are not allowed. Trying to add a {@code null} element results in {@code
  * NullPointerException}.
  *
- * The heap is unbounded, though it stores elements in an array. Similar to e.g. {@link ArrayList},
- * array capacity is expanded or decreased at certain threshold "fill rates", however so that adding
- * elements is still possible in amortised O(log n) time.
+ * The heap is unbounded, though it stores elements in an array. Similar to e.g. {@link
+ * java.util.ArrayList}, array capacity is expanded or decreased at certain threshold "load
+ * factors", however so that adding and popping elements is still possible in amortised O(log n)
+ * time.
  *
  * @author Juho Juurinen
  * @param <E> the class of elements held in a heap instance
@@ -23,34 +23,38 @@ import java.util.NoSuchElementException;
 public class MinHeap<E>
 {
     /**
-     * Initial and minimum size to allocate for the heap array.
+     * Initial and minimum size to allocate for the backing array.
      */
     private static final int MIN_CAPACITY = 8;
 
     /**
-     * Generic array used for storing elements in heap. Emulates a balanced binary tree.
+     * Generic array used for storing the heap elements. Emulates a balanced binary tree.
      */
-    private Object[] heap;
+    private Object[] heap  = new Object[MIN_CAPACITY];
 
     /**
-     * Number of elements in heap.
+     * Number of elements in the heap.
      */
-    private int size;
+    private int size = 0;
 
-    public MinHeap()
-    {
-        this.heap = new Object[MIN_CAPACITY];
-        this.size = 0;
-    }
-
-    public boolean isEmpty()
-    {
-        return size < 1;
-    }
-
+    /**
+     * Returns the number of elements in the heap.
+     *
+     * @return number of elements in the heap
+     */
     public int size()
     {
         return size;
+    }
+
+    /**
+     * Returns {@code true} if and only if the heap contains exactly zero elements.
+     *
+     * @return true if the heap is empty
+     */
+    public boolean isEmpty()
+    {
+        return (size < 1);
     }
 
     /**
@@ -60,7 +64,7 @@ public class MinHeap<E>
      */
     public E peek()
     {
-        return isEmpty()
+        return (isEmpty())
                 ? null
                 : (E) heap[0];
     }
@@ -68,7 +72,7 @@ public class MinHeap<E>
     /**
      * Inserts the given element into the heap.
      *
-     * @param e element to insert into the heap
+     * @param e element to add to the heap
      * @throws NullPointerException if given element is null
      * @throws ClassCastException if given element does not implement {@link Comparable} interface
      */
@@ -115,7 +119,7 @@ public class MinHeap<E>
     }
 
 
-    /* --- Private helper methods below, no comments or description given. --- */
+    /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
     private void heapify(int i)
@@ -125,7 +129,7 @@ public class MinHeap<E>
 
         if (right != -1)
         {
-            int smaller = isLessThan(heap[left], heap[right])
+            int smaller = (isLessThan(heap[left], heap[right]))
                     ? left
                     : right;
 
@@ -148,7 +152,7 @@ public class MinHeap<E>
 
     private int parent(int i)
     {
-        return i / 2;
+        return (i / 2);
     }
 
     private int left(int i)
@@ -167,18 +171,26 @@ public class MinHeap<E>
 
     private void contract()
     {
-        if (heap.length / 2 >= MIN_CAPACITY)
-            heap = Arrays.copyOfRange(heap, 0, heap.length / 2);
+        if (heap.length / 2 < MIN_CAPACITY)
+            return;
+
+        Object[] newHeap = new Object[heap.length / 2];
+        System.arraycopy(heap, 0, newHeap, 0, size + 1);
+
+        heap = newHeap;
     }
 
     private void expand()
     {
-        heap = Arrays.copyOfRange(heap, 0, heap.length * 2);
+        Object[] newHeap = new Object[heap.length * 2];
+        System.arraycopy(heap, 0, newHeap, 0, size + 1);
+
+        heap = newHeap;
     }
 
     private boolean isLessThan(Object smaller, Object bigger)
     {
         Comparable<? super E> c = (Comparable<? super E>) smaller;
-        return c.compareTo((E) bigger) < 0;
+        return (c.compareTo((E) bigger) < 0);
     }
 }

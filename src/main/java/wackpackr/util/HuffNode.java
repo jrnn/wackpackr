@@ -69,6 +69,22 @@ public class HuffNode implements Comparable<HuffNode>
         this.eof = true;
     }
 
+    /**
+     * Sets node as a pseudo-EoF marker, if it is a leaf node. This breaks the pattern of
+     * distinguishing node types with constructors, but is needed when decoding Huffman trees from
+     * compressed binary (including this information directly in the encoded form would compromise
+     * efficiency).
+     */
+    public void setEoF()
+    {
+        if (isLeaf())
+            this.eof = true;
+    }
+
+
+    /*------BELOW JUST VANILLA GETTERS AND SETTERS------*/
+
+
     public boolean isLeaf()
     {
         return (left == null && right == null);
@@ -97,18 +113,6 @@ public class HuffNode implements Comparable<HuffNode>
     public boolean isEoF()
     {
         return eof;
-    }
-
-    /**
-     * Sets node as a pseudo-EoF marker, if it is a leaf node. This breaks the pattern of
-     * distinguishing node types with constructors, but is needed when decoding Huffman trees from
-     * compressed binary (including this information directly in the encoded form would compromise
-     * efficiency).
-     */
-    public void setEoF()
-    {
-        if (isLeaf())
-            this.eof = true;
     }
 
     @Override

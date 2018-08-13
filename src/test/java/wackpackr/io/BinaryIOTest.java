@@ -89,7 +89,6 @@ public class BinaryIOTest
     public void reads32BitChunksCorrectly() throws Exception
     {
         for (int offset = 0; offset <= 32; offset++)
-        {
             try (BinaryIO io = new BinaryIO(bytes))
             {
                 for (int i = 0; i < offset; i++)
@@ -103,7 +102,6 @@ public class BinaryIOTest
 
                 binary = binary.substring(1);
             }
-        }
     }
 
     @Test(expected = NullPointerException.class)
@@ -124,6 +122,7 @@ public class BinaryIOTest
     public void readBitWhenInputStreamHasEndedThrowsException() throws Exception
     {
         BinaryIO io = new BinaryIO(new byte[]{-1});
+
         for (int i = 0; i < 9; i++)
             io.readBit();
     }
@@ -133,6 +132,7 @@ public class BinaryIOTest
     {
         BinaryIO io = new BinaryIO(new byte[]{-1, 0, 1});
         io.readBit();
+
         for (int i = 0; i < 9; i++)
             io.readByte();
     }
