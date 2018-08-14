@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html xmlns:th = "http://www.thymeleaf.org">
-
   <head>
     <title>wackpackr</title>
     <meta charset = "UTF-8"/>
@@ -8,82 +7,159 @@
       content = "width=device-width, initial-scale=1.0, shrink-to-fit=no"
       name = "viewport"
     />
+    <link
+      href = "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css"
+      rel = "stylesheet"
+    />
   </head>
-
   <body>
-    <div style = "margin : 0rem 5rem;">
-      <h1>~~ wackpackr ~~</h1>
-      <em>wackpackr can't pack for shit!</em>
-      <p>
-        Right now you can just type in some text and wackpackr will compress it
-        with a makeshift Huffman implementation, then show you the original and
-        compressed data in hexadecimal... The compressed hexadecimal contains
-        both the encoded data and the Huffman tree for decoding it.
+    <section class = "section has-background-dark">
+      <div class = "container has-text-centered">
+        <h1 class = "title is-2 is-spaced has-text-white">
+          ~~ wackpackr ~~
+        </h1>
+        <h2 class = "subtitle is-4 is-italic has-text-light">
+          "Wackpackr can't pack for shit!"
+        </h2>
+      </div>
+    </section>
+    <section class = "section has-background-light">
+      <div class = "container">
+        <div class = "content">
+          <h3 class = "title">
+            So what's this all about?
+          </h3>
+          <p>
+            <strong>wackpackr</strong> accepts any kind of file, and will try compressing it with
+            naive implementations of (1) <strong>Huffman</strong> and (2) <strong>LZSS</strong>
+            algorithms.
+          </p>
+          <p>
+            Immediately after this, <strong>wackpackr</strong> decompresses the compressed binary,
+            just to verify whether it can be returned back to its exact initial form.
+          </p>
+          <p>
+            The results are shown below for each algorithm.
+          </p>
+          <p>
+            Note that most files not only cannot be packed smaller, but on the contrary will take up
+            even <em>MORE</em> space after compression. This is because many file types are
+            compressed as-is with sophisticated techniques, so trying to squeeze them any further
+            with a crappy application such as <strong>wackpackr</strong> is bound to backfire
+            miserably.
+          </p>
+          <p>
+            If you want to see nice compression rates, text files usually do the trick. Long,
+            uncompressed text with a lot of recurring patterns can at best be packed to 20% of its
+            original size.
+          </p>
+          <p>
+            Note also that file size is capped currently at <strong>1,024 kB</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+    <section class = "section">
+      <div class = "container">
+        <form
+          class = "box"
+          enctype = "multipart/form-data"
+          th:action = "@{/compress}"
+          th:method = "POST"
+        >
+          <div class = "field is-grouped">
+            <div class = "control">
+              <div class = "file is-link">
+                <label class = "file-label">
+                  <input
+                    class = "file-input"
+                    id = "filepicker"
+                    name = "file"
+                    type = "file"
+                  />
+                  <span class = "file-cta">
+                    <span class = "file-icon">
+                      <i class = "fas fa-upload"></i>
+                    </span>
+                    <span class = "file-label">
+                      Pick a file to ...
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div class = "control">
+              <button class = "button is-link">
+                ... compress
+              </button>
+            </div>
+            <div class = "control is-expanded">
+              <input
+                class = "input"
+                id = "filename"
+                placeholder = "No file selected..."
+                readonly
+                type = "text"
+              />
+            </div>
+          </div>
+        </form>
+        <div class = "box">
+          <table class = "table is-fullwidth">
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Compression (ms)</th>
+                <th>Rate (%)</th>
+                <th>Decompression (ms)</th>
+                <th>File intact?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Huffman</td>
+                <td th:text = "${huffCompress}"></td>
+                <td th:text = "${huffRate}"></td>
+                <td th:text = "${huffDecompress}"></td>
+                <td th:text = "${huffIntact}"></td>
+              </tr>
+              <tr>
+                <td>LZSS</td>
+                <td th:text = "${lzssCompress}"></td>
+                <td th:text = "${lzssRate}"></td>
+                <td th:text = "${lzssDecompress}"></td>
+                <td th:text = "${lzssIntact}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <footer class = "footer has-background-dark has-text-centered">
+      <a href = "https://github.com/jrnn/wackpackr/">
+        <span class = "icon is-medium has-text-white">
+          <i class = "fab fa-github fa-2x"></i>
+        </span>
+      </a>
+      <p class = "has-text-white is-size-7">
+        wackpackr is written in Java and sugarcoated with bulma.io
       </p>
-      <p>
-        You can also plug in hexadecimal and try decompressing it back to text.
-      </p>
-      <h4>Huffman compress</h4>
-      <form
-        th:action = "@{/compress}"
-        th:method = "POST"
-      >
-        <textarea
-          name = "input"
-          placeholder = "Type your wack shit here, hefe"
-          rows = "10"
-          style = "width : 100%;"
-        ></textarea><br/>
-        <input
-          type = "submit"
-          value = "COMPRESS"
-        />
-      </form>
-      <table>
-        <tbody>
-          <tr>
-            <td>Original text:</td>
-            <td th:text = "${text}"></td>
-          </tr>
-          <tr>
-            <td>Original text in hexadecimal:</td>
-            <td th:text = "${hex_original}"></td>
-          </tr>
-          <tr>
-            <td>Compressed text in hexadecimal:</td>
-            <td th:text = "${hex_compressed}"></td>
-          </tr>
-          <tr>
-            <td>Compression rate:</td>
-            <td th:text = "${compression_rate}"></td>
-          </tr>
-        </tbody>
-      </table>
-      <h4>Huffman decompress</h4>
-      <form
-        th:action = "@{/decompress}"
-        th:method = "POST"
-      >
-        <textarea
-          name = "input"
-          placeholder = "Plug in compressed data in hexadecimal, bawse"
-          rows = "5"
-          style = "width : 100%;"
-        ></textarea><br/>
-        <input
-          type = "submit"
-          value = "DECOMPRESS"
-        />
-      </form>
-      <table>
-        <tbody>
-          <tr>
-            <td>Decompressed text:</td>
-            <td th:text = "${decompressed}"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    </footer>
+    <script
+      defer
+      src = "https://use.fontawesome.com/releases/v5.1.0/js/all.js"
+    ></script>
+    <script>
+      var filepicker = document.getElementById("filepicker");
+      filepicker.onchange = function()
+      {
+        if (filepicker.files.length > 0)
+        {
+          document
+            .getElementById("filename")
+            .value = filepicker.files[0].name;
+        }
+      };
+    </script>
   </body>
-
 </html>
