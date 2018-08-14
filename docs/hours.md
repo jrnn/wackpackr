@@ -29,3 +29,4 @@
 | 12.8. | 2 | 60 | replace java.util.ArrayDeque in hash table with DYI linked list |
 | 12.8. | 2 | 62 | linked list tweaking and unit testing |
 | 13.8. | 1 | 63 | cleaning up code and comments |
+| 14.8. | 2 | 65 | hash table tweaking and unit testing |
