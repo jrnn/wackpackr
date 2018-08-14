@@ -18,14 +18,16 @@ public class LZSSEncoder
 
     /**
      * Reads and decodes given input stream, at the same time writing the decoded binary to the
-     * given output stream. Requires an {@link LZSSWindowOperator} instance to maintain a sliding
-     * window with random access, in order to decode back references.
+     * given output stream.
      *
-     * Keeps on reading the input stream until expected pseudo-EoF marker is encountered.
+     * <p>Requires an {@link LZSSWindowOperator} instance to maintain a sliding window with random
+     * access, in order to decode back references.</p>
+     *
+     * <p>Keeps on reading the input stream until expected pseudo-EoF marker is encountered.</p>
      *
      * @param io I/O wrapper that holds both the input and output streams
-     * @param window
-     * @throws IOException
+     * @param window sliding window operator configured for decoding purposes
+     * @throws IOException if there's an error writing to or reading from the I/O streams
      */
     public static void decode(BinaryIO io, LZSSWindowOperator window) throws IOException
     {
@@ -41,15 +43,20 @@ public class LZSSEncoder
     }
 
     /**
-     * Writes the given data in encoded -- and, hopefully, compressed -- form into the given output
-     * stream. Requires an {@link LZSSWindowOperator} instance to control the "sliding window"
-     * dictionary needed in encoding. Assumes that file identifier has already been written into the
-     * output stream. Closes the stream with a nonsensical "zero-offset" pointer as a pseudo-EoF
-     * indicator, plus some 0s for padding to ensure the EoF sequence is not partially cut out.
+     * Writes the given data in encoded — and, hopefully, compressed — form into the given output
+     * stream.
      *
-     * @param io I/O wrapper that holds both the input and output streams
-     * @param window
-     * @throws IOException
+     * <p>Requires an {@link LZSSWindowOperator} instance to control the "sliding window" dictionary
+     * needed in encoding.</p>
+     *
+     * <p>Assumes that file identifier has already been written into the output stream.</p>
+     *
+     * <p>Closes the stream with a nonsensical "zero-offset" pointer as a pseudo-EoF indicator, plus
+     * some 0s for padding to ensure the EoF sequence is not partially cut out.</p>
+     *
+     * @param io I/O wrapper that holds the output stream
+     * @param window sliding window operator configured for encoding purposes
+     * @throws IOException if there's an error writing to the output stream
      */
     public static void encode(BinaryIO io, LZSSWindowOperator window) throws IOException
     {
@@ -74,7 +81,7 @@ public class LZSSEncoder
     }
 
 
-    /* --- Private helper methods below, no comments or description given. --- */
+    /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
     private static void decodeLiteral(BinaryIO io, LZSSWindowOperator window) throws IOException

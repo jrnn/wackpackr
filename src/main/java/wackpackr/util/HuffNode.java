@@ -4,12 +4,12 @@ import java.util.ArrayDeque;
 
 /**
  * Node in a Huffman code tree. Implements {@link Comparable} interface so that natural ordering is
- * by weight, from lightest to heaviest.
+ * by weight, from smallest to largest.
  *
- * Three types of Nodes need to be differentiated: (1) internal nodes, which always have exactly two
+ * <p>Three types of Nodes are differentiated: (1) internal nodes, which always have exactly two
  * child nodes; (2) leaf nodes, which always have exactly zero children; (3) a special pseudo-EoF
  * node, which is also a leaf node. In practice the type is decided at instantiation, i.e. there is
- * a separate constructor for each.
+ * a separate constructor for each.</p>
  *
  * @author Juho Juurinen
  */
@@ -22,8 +22,8 @@ public class HuffNode implements Comparable<HuffNode>
     private boolean eof = false;
 
     /**
-     * Constructor for leaf nodes. Used when initialising single-node trees before combining them
-     * into a Huffman tree.
+     * Constructs a new leaf node. Used when creating single-node trees before combining them into a
+     * Huffman tree.
      *
      * @param value byte value associated with this node
      * @param weight number of occurrences of this byte value in processed file
@@ -36,10 +36,14 @@ public class HuffNode implements Comparable<HuffNode>
     }
 
     /**
-     * Constructor for internal nodes. Used when building a Huffman tree by combining "lesser"
-     * trees. Weight is calculated directly as the sum of children's weights. Neither of the child
-     * nodes can be {@code null}. The subtrees starting from both child nodes should contain only
-     * byte values with lower frequencies than leaf nodes further up the tree.
+     * Constructs a new internal node. Used when building a Huffman tree by combining "lesser"
+     * trees.
+     *
+     * <p>Weight is calculated directly as the sum of children's weights. Neither of the child nodes
+     * can be {@code null}.</p>
+     *
+     * <p>The subtrees starting from both child nodes should contain only byte values with lower
+     * frequencies than leaf nodes further up the tree.</p>
      *
      * @param left pointer to root node of left subtree
      * @param right pointer to root node of right subtree
@@ -57,9 +61,11 @@ public class HuffNode implements Comparable<HuffNode>
     }
 
     /**
-     * Constructor for pseudo-EoF node. Used exactly once when building a Huffman tree from a
-     * frequency table. The node's weight is set as negative to ensure that it takes a relatively
-     * low position in the tree.
+     * Constructs a new pseudo-EoF node. Used exactly once when building a Huffman tree from a
+     * frequency table.
+     *
+     * <p>The node's weight is set as negative to ensure that it takes a relatively low position in
+     * the resultant tree.</p>
      */
     public HuffNode()
     {
@@ -79,6 +85,12 @@ public class HuffNode implements Comparable<HuffNode>
     {
         if (isLeaf())
             this.eof = true;
+    }
+
+    @Override
+    public int compareTo(HuffNode o)
+    {
+        return Long.compare(weight, o.getWeight());
     }
 
 
@@ -113,12 +125,6 @@ public class HuffNode implements Comparable<HuffNode>
     public boolean isEoF()
     {
         return eof;
-    }
-
-    @Override
-    public int compareTo(HuffNode o)
-    {
-        return Long.compare(weight, o.getWeight());
     }
 
 

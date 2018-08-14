@@ -53,23 +53,23 @@ public class IndexController
             start = System.nanoTime();
             compressed = Huffman.compress(initial);
             end = System.nanoTime();
-            HUFF_COMPRESS = String.format("%d", (end - start) / 1000000);
-            HUFF_RATE = String.format("%f", (100.0 * compressed.length / initial.length));
+            HUFF_COMPRESS = String.format("%,d", (end - start) / 1000000);
+            HUFF_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
             start = System.nanoTime();
             decompressed = Huffman.decompress(compressed);
             end = System.nanoTime();
-            HUFF_DECOMPRESS = String.format("%d", (end - start) / 1000000);
+            HUFF_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
             HUFF_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";
 
             start = System.nanoTime();
             compressed = LZSS.compress(initial);
             end = System.nanoTime();
-            LZSS_COMPRESS = String.format("%d", (end - start) / 1000000);
-            LZSS_RATE = String.format("%f", (100.0 * compressed.length / initial.length));
+            LZSS_COMPRESS = String.format("%,d", (end - start) / 1000000);
+            LZSS_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
             start = System.nanoTime();
             decompressed = LZSS.decompress(compressed);
             end = System.nanoTime();
-            LZSS_DECOMPRESS = String.format("%d", (end - start) / 1000000);
+            LZSS_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
             LZSS_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";
         }
         catch (Exception e)

@@ -10,7 +10,7 @@ import java.io.IOException;
  * offering the same methods for byte-size chunks, irrespective of the byte boundaries of the
  * underlying streams.
  *
- * Possible to initiate with or without an input stream.
+ * <p>Possible to use with or without an input stream.</p>
  *
  * @author Juho Juurinen
  */
@@ -24,8 +24,17 @@ public class BinaryIO implements AutoCloseable
     private int bufferOut = 0;
     private int offsetOut = 0;
 
+    /**
+     * Constructs a new BinaryIO instance for writing purposes only, without an input stream.
+     */
     public BinaryIO() {}
 
+    /**
+     * Constructs a new BinaryIO instance for both reading and writing purposes, with the given byte
+     * array set as the input stream.
+     *
+     * @param bytes input buffer
+     */
     public BinaryIO(byte[] bytes)
     {
         this.in = new ByteArrayInputStream(bytes);

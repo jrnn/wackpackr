@@ -31,3 +31,4 @@
 | 13.8. | 1 | 63 | cleaning up code and comments |
 | 14.8. | 2 | 65 | hash table tweaking and unit testing |
 | 14.8. | 1 | 66 | prettier outer crust with bulma.io, UI for compressing files instead of text |
+| 14.8. | 1 | 67 | javadoc formatting |

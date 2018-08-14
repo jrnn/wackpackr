@@ -4,12 +4,13 @@ package wackpackr.util;
  * Limited application of a circular, doubly linked list with a sentinel node. Offers only a few
  * basic operations, nowhere near as extensive as e.g. the {@link java.util.List} interface.
  *
- * Elements are always added to the end of the list, and hence ordered "chronologically": from the
- * oldest to the most recently added element. Duplicate and {@code null} elements are permitted.
+ * <p>Elements are always added to the end of the list, and hence ordered "chronologically" from
+ * the oldest to the most recently added element. Duplicate and {@code null} elements are permitted.
+ * </p>
  *
- * Performance presumably is what can be expected from a linked list with zero optimisation. In
+ * <p>Performance presumably is what can be expected from a linked list with zero optimisation. In
  * other words, this is not a smart choice for anything, unless using a linked list in particular
- * can be justified.
+ * can be justified.</p>
  *
  * @author Juho Juurinen
  * @param <E> the class of elements stored in a list instance
@@ -128,8 +129,8 @@ public class CircularDoublyLinkedList<E>
      * Returns all elements in this list as an array in proper sequence: that is, in the order they
      * were added to the list.
      *
-     * There are no references between the list elements and the returned array, so the caller can
-     * safely modify the array without fear of undesired side-effects.
+     * <p>There are no references between the list elements and the returned array, so the caller
+     * can safely modify the array without fear of undesired side-effects.</p>
      *
      * @return an array containing all list elements from first to last
      */
@@ -148,8 +149,8 @@ public class CircularDoublyLinkedList<E>
      * Returns all elements in this list as an array, ordered from the last element on the list to
      * the first: that is, from the most recently added to the oldest one.
      *
-     * There are no references between the list elements and the returned array, so the caller can
-     * safely modify the array without fear of undesired side-effects.
+     * <p>There are no references between the list elements and the returned array, so the caller
+     * can safely modify the array without fear of undesired side-effects.</p>
      *
      * @return an array containing all list elements from last to first
      */
@@ -166,9 +167,9 @@ public class CircularDoublyLinkedList<E>
 
     /**
      * Nested helper class restricted only for use by the parent class. Defines a minimal list node,
-     * instances of which are used as building blocks of the list. There are separate constructors
-     * for the pseudo sentinel node, vs. actual nodes that hold list elements. The linking of new
-     * nodes at the end of the list is handled by the constructor.
+     * used as building blocks of the list. There are separate constructors for the pseudo sentinel
+     * node, vs. actual nodes that hold list elements. The constructors partially handle linking the
+     * new node with respect to the sentinel node.
      */
     private final class Node
     {

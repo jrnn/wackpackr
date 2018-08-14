@@ -6,16 +6,19 @@ import wackpackr.util.SlidingWindow;
 
 /**
  * Helper class that handles the "sliding window" dictionary needed in LZSS compression and
- * decompression. Needs to be initialised a bit differently depending whether compressing or
- * decompressing, which is handled with a separate constructor for each case.
+ * decompression.
+ *
+ * <p>Needs to be configured a bit differently depending whether compressing or decompressing. This
+ * is reflected as two separate constructors, one for each case.</p>
  *
  * <p>The decisive thing here is the technique used in longest match search, which practically
  * alone determines compression efficiency. Current implementation tries to reproduce a technique
  * used e.g. in Deflate: recurring three-byte sequences are memorised as they flow in and out of the
  * prefix window, so that searching can be limited only to positions where at least the first three
- * bytes match (which incidentally is also the threshold length for encoding a pointer). A hash
- * table is used to associate three-byte sequences to positions, allowing insertion and search in
- * constant time.</p>
+ * bytes match (which incidentally is also the threshold length for encoding a pointer).</p>
+ *
+ * <p>A hash table is used to associate three-byte sequences to positions, allowing insertion and
+ * search in constant time.</p>
  *
  * @author Juho Juurinen
  */
@@ -25,10 +28,13 @@ public class LZSSWindowOperator
     private final SlidingWindow<Byte> window = new SlidingWindow(Constants.LZSS_WINDOW_SIZE);
 
     /**
-     * Constructor used for decoding purposes, when the hash table for pattern matching is not
-     * needed (and hence not initialised). A "dummy byte" is inserted at head of the window, just so
-     * that the read pointer can move one step ahead of the decoded stream (otherwise would throw
-     * {@code IndexOutOfBoundsException}).
+     * Constructs a new sliding window operator with a lighter configuration for decoding purposes.
+     * More specifically, the hash table (which is only needed for pattern matching) is not
+     * initialised.
+     *
+     * <p>A "dummy byte" is inserted at head of the window, just so that the read pointer can move
+     * one step ahead of the decoded stream; otherwise a {@code IndexOutOfBoundsException} would be
+     * thrown.</p>
      */
     public LZSSWindowOperator()
     {
@@ -36,8 +42,9 @@ public class LZSSWindowOperator
     }
 
     /**
-     * Constructor used for encoding purposes: hash table used in memorising pattern recurrences is
-     * initialised, and the initial lookahead buffer is pushed into the window.
+     * Constructs a new sliding window operator for encoding purposes. The hash table used in
+     * memorising pattern recurrences is initialised, and the initial lookahead buffer is pushed
+     * into the window.
      *
      * <p>There will be maximum ~4100 elements stored in the hash table at any one time. Load factor
      * should be in the 0.65~0.75 range, while table size should be a prime number midway between
@@ -56,9 +63,11 @@ public class LZSSWindowOperator
     /**
      * Reads backwards through current prefix window, searching for longest partial or complete
      * match of current buffer. Returns the length and offset (relative to sliding window cursor
-     * position) of the best match, or [0, 0] if no matches were found. In case of ties, the match
-     * with least distance from buffer is returned. Also, if a complete match is found, the search
-     * terminates since there is no point in looking any further.
+     * position) of the best match, or [0, 0] if no matches were found.
+     *
+     * <p>In case of ties, the match with least distance from buffer is returned. Also, if a
+     * complete match is found, the search terminates since there is no point in looking any
+     * further.</p>
      *
      * @return length and offset of longest match, as integer array
      */
@@ -103,17 +112,18 @@ public class LZSSWindowOperator
     }
 
     /**
-     * Moves the window forward one step. The given byte is inserted to the head of the buffer,
-     * which in turn pushes the last byte in buffer to the head of the prefix window. Further, if
-     * the prefix is full, the byte at the end is dumped.
+     * Moves the window forward one step, inserting the given byte to the head of the buffer and
+     * dumping the byte at the other end, if the prefix is full.
      *
      * <p>This method also handles the recording of positions of new three-byte sequences as they
      * first enter the prefix window, as well as their deletion when they eventually are dumped out
-     * from the other end. At first glance, the deletion part looks problematic due to hash
-     * collisions: how to be sure the correct value is deleted, when virtually any byte sequence may
-     * associate to it? However, this is not an issue, because the byte sequences are encountered in
-     * the exact same order at both ends of the prefix window; and, in particular, the hash table
-     * used for holding the values stores them in sequential order in case of hash collisions.</p>
+     * from the other end.</p>
+     *
+     * <p>At first glance, the deletion part looks problematic due to hash collisions: how to be
+     * sure the correct value is deleted, when virtually any byte sequence may associate to it?
+     * However, this is not an issue, because the byte sequences are encountered in the exact same
+     * order at both ends of the prefix window; and, in particular, the hash table used for holding
+     * the values stores them in sequential order in case of hash collisions.</p>
      *
      * @param b byte to insert at head of window
      */
@@ -142,7 +152,7 @@ public class LZSSWindowOperator
     }
 
     /**
-     * Reads and returns the byte value coming out next from the lookahead buffer.
+     * Reads, but does not remove, the byte value coming out next from the lookahead buffer.
      *
      * @return next byte to come out from the lookahead buffer
      */

@@ -14,12 +14,14 @@ import wackpackr.io.BinaryIO;
 public class LZSS
 {
     /**
-     * Compresses given file. Writes a 32-bit identifier at the head of the compressed binary, and
-     * a pseudo-EoF indicator at the end, padded with a few 0s (just to be safe).
+     * Compresses given file.
+     *
+     * <p>Writes a 32-bit identifier at the head of the compressed binary, and a pseudo-EoF
+     * indicator at the end, padded with a few 0s (just to be safe).</p>
      *
      * @param bytes file to compress, as byte array
      * @return compressed file, as byte array
-     * @throws IOException
+     * @throws IOException if there's an error writing to the output stream
      */
     public static byte[] compress(byte[] bytes) throws IOException
     {
@@ -37,14 +39,15 @@ public class LZSS
     }
 
     /**
-     * Decompresses given file. Apart from checking the 32-bit tag in the header, there are
-     * practically no other measures to verify the file. Passing in a valid file is method caller's
-     * responsibility.
+     * Decompresses given file.
+     *
+     * <p>Apart from checking the 32-bit tag in the header, there are practically no other measures
+     * to verify the file. Passing in a valid file is method caller's responsibility.</p>
      *
      * @param bytes file to decompress, as byte array
      * @return decompressed file, as byte array
      * @throws IllegalArgumentException if file does not have the correct identifier in its header
-     * @throws IOException
+     * @throws IOException if there's an error writing to or reading from the I/O streams
      */
     public static byte[] decompress(byte[] bytes) throws IOException
     {

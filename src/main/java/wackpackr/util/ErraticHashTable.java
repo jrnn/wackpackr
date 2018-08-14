@@ -12,7 +12,7 @@ package wackpackr.util;
  * only byte sequences (of arbitrary length) are accepted as keys.</p>
  *
  * <p>Only two methods are offered: (1) adding an element with a certain key; and (2) retrieving all
- * elements whose keys share the same hash value (as described above).</p>
+ * elements whose keys hash to the same bucket (as described above).</p>
  *
  * <p>The backing array is not dynamically resized. Hash table size must be given at instantiation,
  * and remains fixed thereafter. For this reason, this class should not be used unless the maximum
@@ -21,9 +21,9 @@ package wackpackr.util;
  * <p>All things considered, due to its erratic behaviour and laughably limited functionality, this
  * class should not be used unless the caller understands exactly what they're signing up for.</p>
  *
- * <p>For hashing, the technique used in {@link String} is blatantly copied, because (based on some
- * quick testing) it gives a very uniform distribution with random byte sequences. So, if table size
- * is sensibly set, the operations work in constant time.</p>
+ * <p>For hashing, the technique used in {@link String} is blatantly copied, because it gives a
+ * very uniform distribution with random byte sequences. So, if table size is sensibly set, the
+ * operations work in constant time.</p>
  *
  * @author Juho Juurinen
  * @param <E> the class of elements stored in a hash table instance
@@ -69,12 +69,12 @@ public class ErraticHashTable<E>
     /**
      * Adds given element to a bucket determined by the hash value of the associated key.
      *
-     * @param value element to add to hash table
+     * @param e element to add to hash table
      * @param key byte sequence of arbitrary length
      */
-    public void put(E value, byte... key)
+    public void put(E e, byte... key)
     {
-        safeGet(hash(key)).add(value);
+        safeGet(hash(key)).add(e);
     }
 
     /**

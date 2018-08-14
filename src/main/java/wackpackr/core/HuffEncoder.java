@@ -23,11 +23,11 @@ public class HuffEncoder
      * Reads and decodes given input stream using the Huffman tree passed as parameter, at the same
      * time writing the decoded binary to the given output stream.
      *
-     * Keeps on reading the input stream until expected pseudo-EoF marker is encountered.
+     * <p>Keeps on reading the input stream until expected pseudo-EoF marker is encountered.</p>
      *
      * @param root pointer to root node of Huffman tree used in decoding
      * @param io I/O wrapper that holds both the input and output streams
-     * @throws IOException
+     * @throws IOException if there's an error writing to or reading from the I/O streams
      */
     public static void decode(HuffNode root, BinaryIO io) throws IOException
     {
@@ -47,17 +47,20 @@ public class HuffEncoder
     }
 
     /**
-     * Writes the given data in encoded -- and, hopefully, compressed -- form into the given output
-     * stream, using the given Huffman tree. Assumes that file identifier and the Huffman tree have
-     * already been written into the output stream. Wraps the encoded data with the pseudo-EoF
-     * node's prefix code on both sides, because this is the format expected when decompressing.
-     * Finally, adds a few 0s for padding just to ensure that the last EoF sequence is not partially
-     * cut off.
+     * Writes the given data in encoded — and, hopefully, compressed — form into the given output
+     * stream, using the given Huffman tree.
+     *
+     * <p>Assumes that file identifier and the Huffman tree have already been written into the
+     * output stream.</p>
+     *
+     * <p>Wraps the encoded data with the pseudo-EoF node's prefix code on both sides, because this
+     * is the format expected when decompressing. Finally, adds a few 0s for padding just to ensure
+     * that the last EoF sequence is not partially cut off.</p>
      *
      * @param bytes file to encode, as byte array
      * @param root pointer to root node of Huffman tree used in decoding
-     * @param io I/O wrapper that holds both the input and output streams
-     * @throws IOException
+     * @param io I/O wrapper that holds the output stream
+     * @throws IOException if there's an error writing to the output stream
      */
     public static void encode(byte[] bytes, HuffNode root, BinaryIO io) throws IOException
     {
@@ -73,7 +76,7 @@ public class HuffEncoder
     }
 
 
-    /* --- Private helper methods below, no comments or description given. --- */
+    /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
     private static void write(int value, BinaryIO io) throws IOException

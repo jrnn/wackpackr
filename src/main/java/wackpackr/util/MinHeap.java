@@ -3,22 +3,22 @@ package wackpackr.util;
 import java.util.NoSuchElementException;
 
 /**
- * Simple binary min-heap providing just the basic operations: adding and popping elements in
- * O(log n) time, and peeking in constant time.
+ * Simple binary min-heap providing just the basic operations: <em>adding</em> and <em>popping</em>
+ * elements in O(log n) time, and <em>peeking</em> in constant time.
  *
- * Elements are ordered by their natural ordering. Trying to add elements that do not implement the
- * {@link Comparable} interface results in {@code ClassCastException}.
+ * <p>Elements are ordered by their natural ordering. Trying to add elements that do not implement
+ * the {@link Comparable} interface results in {@code ClassCastException}.</p>
  *
- * {@code null} elements are not allowed. Trying to add a {@code null} element results in {@code
- * NullPointerException}.
+ * <p>{@code null} elements are not allowed. Trying to add a {@code null} element results in {@code
+ * NullPointerException}.</p>
  *
- * The heap is unbounded, though it stores elements in an array. Similar to e.g. {@link
+ * <p>The heap is unbounded, though it stores elements in an array. Similar to e.g. {@link
  * java.util.ArrayList}, array capacity is expanded or decreased at certain threshold "load
  * factors", however so that adding and popping elements is still possible in amortised O(log n)
- * time.
+ * time.</p>
  *
  * @author Juho Juurinen
- * @param <E> the class of elements held in a heap instance
+ * @param <E> the class of elements stored in a heap instance
  */
 public class MinHeap<E>
 {
@@ -58,7 +58,7 @@ public class MinHeap<E>
     }
 
     /**
-     * Retrieves (but does not remove) the element at the head of the heap.
+     * Retrieves, but does not remove, the element at the head of the heap.
      *
      * @return smallest element in the heap, or {@code null} if heap is empty
      */

@@ -5,17 +5,17 @@ package wackpackr.util;
  * N inbound elements, where N is the given cache size. More precisely, once the cache is full, it
  * dumps oldest elements from one end as new ones are inserted at the other (FIFO).
  *
- * In practice the cache is implemented as a circular array. Whenever the underlying array is full,
- * the head pointer wraps around, so that each new element overwrites the oldest element in queue.
+ * <p>In practice, the cache is implemented as a circular array. Whenever the underlying array is
+ * full, the head pointer wraps around, so that each new element overwrites the oldest element.</p>
  *
- * Cache size is determined at instantiation, and cannot be changed thereafter.
+ * <p>Cache size is determined at instantiation, and cannot be changed thereafter.</p>
  *
- * Beside the head pointer, there is a separate read pointer ("cursor") that allows random access
- * to the cache window, similar to most I/O tools (such as {@Link RandomAccessFile}). Control of the
- * cursor is delegated fully to the user, i.e. it does not move by itself. Trying to read or move
- * beyond either end of the cache window results in an exception.
+ * <p>Beside the head pointer, there is a separate read pointer ("cursor") that allows arbitrary
+ * access to the cache window, similar to most I/O tools (such as {@link java.io.RandomAccessFile}).
+ * Control of the cursor is delegated fully to the user, and it never moves by itself. Trying to
+ * read or move beyond either end of the cache window results in an exception.</p>
  *
- * {@code null} elements are permitted.
+ * <p>{@code null} elements are permitted.</p>
  *
  * @author Juho Juurinen
  * @param <E> the class of elements stored in a sliding window instance
@@ -81,7 +81,7 @@ public class SlidingWindow<E>
     }
 
     /**
-     * Move cursor forward to the next position.
+     * Moves cursor forward to the next position.
      *
      * @throws IndexOutOfBoundsException if trying to move beyond cache window
      */
@@ -91,7 +91,7 @@ public class SlidingWindow<E>
     }
 
     /**
-     * Move cursor forward or backward from its current position by given offset.
+     * Moves cursor forward or backward from its current position by given offset.
      *
      * @param offset distance to move
      * @throws IndexOutOfBoundsException if trying to move beyond cache window

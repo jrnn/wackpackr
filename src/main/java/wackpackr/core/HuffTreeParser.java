@@ -32,8 +32,7 @@ public class HuffTreeParser
                         (byte) b,
                         freqs[b + 128]
                 ));
-        // pseudo-EoF node
-        heap.add(new HuffNode());
+        heap.add(new HuffNode());   // pseudo-EoF node
 
         while (heap.size() > 1)
             heap.add(new HuffNode(
@@ -49,8 +48,8 @@ public class HuffTreeParser
      * internal nodes are encoded as 0, and leaf nodes as 1 followed by the byte value of that leaf.
      *
      * @param node pointer to root node of Huffman tree
-     * @param io output stream wrapper to which tree is encoded
-     * @throws IOException
+     * @param io I/O wrapper holding the output stream to which tree is encoded
+     * @throws IOException if there's an error writing to the output stream
      */
     public static void encodeTree(HuffNode node, BinaryIO io) throws IOException
     {
@@ -69,12 +68,12 @@ public class HuffTreeParser
     /**
      * Reads Huffman tree from given input stream, and returns pointer to root node of the tree.
      *
-     * Assumes that the immediate next sequence of bits in the input stream contains a Huffman tree
-     * encoded in a specific manner, followed by the prefix code of the pseudo-EoF node.
+     * <p>Assumes that the immediate next sequence of bits in the input stream contains a Huffman
+     * tree encoded in a specific manner, followed by the prefix code of the pseudo-EoF node.</p>
      *
      * @param io input stream wrapper containing Huffman-compressed binary
      * @return pointer to root node of decoded Huffman tree
-     * @throws IOException
+     * @throws IOException if there's an error reading the input stream
      */
     public static HuffNode decodeTree(BinaryIO io) throws IOException
     {
@@ -85,7 +84,7 @@ public class HuffTreeParser
     }
 
 
-    /* --- Private helper methods below, no comments or description given. --- */
+    /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
     private static long[] countFrequencies(byte[] bytes)
