@@ -18,8 +18,8 @@ public class Huffman
      * Compresses given file.
      *
      * <p>Information needed for decompression is stored to the output file as a header. The header
-     * consists, in order, of <ol><li>a 32-bit identifier</li><li>Huffman tree that maps prefix
-     * codes to byte values</li><li>prefix code associated with the pseudo-EoF marker</li></ol></p>
+     * consists, in order, of:</p><ol><li>a 32-bit identifier</li><li>Huffman tree that maps prefix
+     * codes to byte values</li><li>prefix code associated with the pseudo-EoF marker</li></ol>
      *
      * <p>Header is followed by the actual data in encoded form. File closes with the pseudo-EoF bit
      * sequence, and a few 0s for buffer (just to be safe).</p>

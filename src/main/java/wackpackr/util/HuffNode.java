@@ -1,7 +1,5 @@
 package wackpackr.util;
 
-import java.util.ArrayDeque;
-
 /**
  * Node in a Huffman code tree. Implements {@link Comparable} interface so that natural ordering is
  * by weight, from smallest to largest.
@@ -125,42 +123,5 @@ public class HuffNode implements Comparable<HuffNode>
     public boolean isEoF()
     {
         return eof;
-    }
-
-
-    /* --- BELOW JUST SOME TEMPORARY BULLSHIT METHODS FOR DEBUGGING PURPOSES --- */
-
-
-    @Override
-    public String toString()
-    {
-        return isEoF()
-                ? "[ EOF ]"
-                : "[" + value + ", " + weight + "]";
-    }
-
-    public static void printTree(HuffNode root)
-    {
-        HuffNode node;
-        ArrayDeque<HuffNode> P = new ArrayDeque<>();
-        ArrayDeque<HuffNode> Q = new ArrayDeque<>();
-        P.offer(root);
-        while (!P.isEmpty())
-        {
-            System.out.print("      ");
-            while (!P.isEmpty())
-                Q.offer(P.poll());
-            while (!Q.isEmpty())
-            {
-                node = Q.poll();
-                System.out.print("  " + node);
-                if (!node.isLeaf())
-                {
-                    P.offer(node.left);
-                    P.offer(node.right);
-                }
-            }
-            System.out.println();
-        }
     }
 }

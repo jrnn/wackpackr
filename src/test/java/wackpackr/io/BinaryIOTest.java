@@ -144,7 +144,7 @@ public class BinaryIOTest
 
         try (BinaryIO io = new BinaryIO())
         {
-            while (bs.hasNext())
+            while (bs.length() > 0)
                 io.writeBit(bs.nextBit());
 
             Assert.assertArrayEquals(
@@ -168,7 +168,7 @@ public class BinaryIOTest
                 while (bs.length() >= 8)
                     io.writeByte(bs.nextByte());
 
-                while (bs.hasNext())
+                while (bs.length() > 0)
                     io.writeBit(bs.nextBit());
 
                 Assert.assertArrayEquals(
@@ -199,7 +199,7 @@ public class BinaryIOTest
                     io.writeBytes(chunk);
                 }
 
-                while (bs.hasNext())
+                while (bs.length() > 0)
                     io.writeBit(bs.nextBit());
 
                 Assert.assertArrayEquals(
@@ -223,7 +223,7 @@ public class BinaryIOTest
                 while (bs.length() >= 32)
                     io.write32Bits(bs.next32Bits());
 
-                while (bs.hasNext())
+                while (bs.length() > 0)
                     io.writeBit(bs.nextBit());
 
                 Assert.assertArrayEquals(
@@ -265,5 +265,46 @@ public class BinaryIOTest
         }
 
         return sb.toString();
+    }
+
+    private final class MockBitStream
+    {
+        private String s;
+
+        MockBitStream(String s)
+        {
+            this.s = s;
+        }
+
+        int length()
+        {
+            return s.length();
+        }
+
+        boolean nextBit()
+        {
+            return next(1) == 1;
+        }
+
+        byte nextByte()
+        {
+            return (byte) next(8);
+        }
+
+        long next32Bits()
+        {
+            return next(32);
+        }
+
+        private long next(int n)
+        {
+            if (s.length() < n)
+                throw new ArrayIndexOutOfBoundsException();
+
+            long next = Long.parseLong(s.substring(0, n), 2);
+            s = s.substring(n);
+
+            return next;
+        }
     }
 }
