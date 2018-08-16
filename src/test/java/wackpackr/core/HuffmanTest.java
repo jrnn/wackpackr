@@ -16,11 +16,11 @@ public class HuffmanTest
     public void huffmanCompressionWorks() throws IOException
     {
         Assert.assertArrayEquals(
-                Huffman.compress(s1_initial.getBytes()),
+                HuffCompressor.compress(s1_initial.getBytes()),
                 s1_compressed
         );
         Assert.assertArrayEquals(
-                Huffman.compress(s2_initial.getBytes()),
+                HuffCompressor.compress(s2_initial.getBytes()),
                 s2_compressed
         );
     }
@@ -31,14 +31,14 @@ public class HuffmanTest
         Assert.assertEquals(
                 s1_initial,
                 new String(
-                        Huffman.decompress(s1_compressed),
+                        HuffCompressor.decompress(s1_compressed),
                         StandardCharsets.UTF_8
                 )
         );
         Assert.assertEquals(
                 s2_initial,
                 new String(
-                        Huffman.decompress(s2_compressed),
+                        HuffCompressor.decompress(s2_compressed),
                         StandardCharsets.UTF_8
                 )
         );
@@ -48,6 +48,6 @@ public class HuffmanTest
     public void throwsExceptionIfIncorrectTagInHeader() throws IOException
     {
         byte[] invalid = new byte[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        Huffman.decompress(invalid);
+        HuffCompressor.decompress(invalid);
     }
 }

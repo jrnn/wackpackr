@@ -156,9 +156,20 @@ public class LZSSWindowOperator
      *
      * @return next byte to come out from the lookahead buffer
      */
-    public Byte next()
+    public Byte peek()
     {
         return window.read();
+    }
+
+    /**
+     * Inserts given byte at head of the window, and moves the read pointer forward one step.
+     *
+     * @param b byte to insert at head of the window
+     */
+    public void insertAndMove(Byte b)
+    {
+        window.insert(b);
+        window.move();
     }
 
     /**
@@ -171,21 +182,8 @@ public class LZSSWindowOperator
     public Byte copyBackReference(int offset)
     {
         Byte b = window.read(-offset);
-
-        window.insert(b);
-        window.move();
+        insertAndMove(b);
 
         return b;
-    }
-
-    /**
-     * Inserts given byte at head of the window, and moves the read pointer forward one step.
-     *
-     * @param b byte to insert at head of the window
-     */
-    public void insertAndMove(Byte b)
-    {
-        window.insert(b);
-        window.move();
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import wackpackr.core.Huffman;
+import wackpackr.core.HuffCompressor;
 import wackpackr.core.LZSS;
 
 @Controller
@@ -51,12 +51,12 @@ public class IndexController
             initial = file.getBytes();
 
             start = System.nanoTime();
-            compressed = Huffman.compress(initial);
+            compressed = HuffCompressor.compress(initial);
             end = System.nanoTime();
             HUFF_COMPRESS = String.format("%,d", (end - start) / 1000000);
             HUFF_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
             start = System.nanoTime();
-            decompressed = Huffman.decompress(compressed);
+            decompressed = HuffCompressor.decompress(compressed);
             end = System.nanoTime();
             HUFF_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
             HUFF_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";

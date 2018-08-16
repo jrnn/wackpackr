@@ -11,7 +11,7 @@ import wackpackr.util.HuffNode;
  *
  * @author Juho Juurinen
  */
-public class Huffman
+public class HuffCompressor
 {
     private static String[] CODES;
     private static boolean EOF_REACHED;

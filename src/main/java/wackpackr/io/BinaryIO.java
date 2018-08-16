@@ -87,6 +87,25 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
+     * Reads and returns the next byte in the input stream, or {@code null} if the input stream has
+     * already been read through to the end.
+     *
+     * @return the next byte in input stream, or null if input stream has reached the end
+     * @throws NullPointerException if no input stream has been set
+     * @throws IOException if there's an error reading the input stream
+     */
+    public Byte readByteOrNull() throws IOException
+    {
+        try
+        {
+            return readByte();
+        }
+        catch (EOFException e) {}
+
+        return null;
+    }
+
+    /**
      * Reads and returns requested number of bytes coming up next in the input stream.
      *
      * @param count number of bytes to read
