@@ -33,3 +33,4 @@
 | 14.8. | 1 | 66 | prettier outer crust with bulma.io, UI for compressing files instead of text |
 | 14.8. | 1 | 67 | javadoc formatting |
 | 15.8. | 2 | 69 | reading a bit about LZ78 and LZW, and taking first steps with code |
+| 16.8. | 2 | 71 | clumsy, malfunctioning LZW compression and decompression |
