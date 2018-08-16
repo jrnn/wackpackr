@@ -15,8 +15,7 @@ public class HuffTreeParser
 {
     /**
      * Reads the given byte array and creates an optimal Huffman tree, based on the frequency of
-     * appearance of each byte in the array. For convenience, a pseudo-EoF marker is included in the
-     * tree by default.
+     * appearance of each byte in the array. A pseudo-EoF marker is included in the tree by default.
      *
      * @param bytes raw data as byte array
      * @return pointer to root node of resultant Huffman tree
@@ -60,6 +59,7 @@ public class HuffTreeParser
         else
         {
             io.writeBit(false);
+
             encodeTree(node.getLeft(), io);
             encodeTree(node.getRight(), io);
         }
@@ -71,7 +71,7 @@ public class HuffTreeParser
      * <p>Assumes that the immediate next sequence of bits in the input stream contains a Huffman
      * tree encoded in a specific manner, followed by the prefix code of the pseudo-EoF node.</p>
      *
-     * @param io input stream wrapper containing Huffman-compressed binary
+     * @param io I/O wrapper holding the input stream from which tree is decoded
      * @return pointer to root node of decoded Huffman tree
      * @throws IOException if there's an error reading the input stream
      */

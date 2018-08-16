@@ -1,28 +1,32 @@
 package wackpackr.core;
 
+import java.io.EOFException;
 import java.io.IOException;
 import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
 
 /**
- * Compression and decompression with a simplistic implementation of the Huffman algorithm. This
- * class basically just handles initialising the input and output streams used for I/O operations,
- * while most of the actual work is delegated to helper classes.
+ * Compression and decompression with a simplistic implementation of the Huffman algorithm.
  *
  * @author Juho Juurinen
  */
 public class Huffman
 {
+    private static String[] CODES;
+    private static boolean EOF_REACHED;
+
     /**
-     * Compresses given file.
+     * Compresses the given file using vanilla Huffman encoding.
      *
-     * <p>Information needed for decompression is stored to the output file as a header. The header
-     * consists, in order, of:</p><ol><li>a 32-bit identifier</li><li>Huffman tree that maps prefix
-     * codes to byte values</li><li>prefix code associated with the pseudo-EoF marker</li></ol>
+     * <p>Information needed for decompression is encoded to the beginning of the output stream.
+     * This header consists, in order, of:</p><ol><li>a 32-bit identifier indicating the used
+     * compression technique</li><li>Huffman tree that maps prefix codes to byte values</li><li>
+     * prefix code associated with the pseudo-EoF marker</li></ol>
      *
-     * <p>Header is followed by the actual data in encoded form. File closes with the pseudo-EoF bit
-     * sequence, and a few 0s for buffer (just to be safe).</p>
+     * <p>The header is followed by the actual data in encoded form. The output stream closes with
+     * the pseudo-EoF marker and, finally, a few 0s for padding — just to ensure that the EoF bit
+     * sequence is not partially cut off.</p>
      *
      * @param bytes file to compress, as byte array
      * @return compressed file, as byte array
@@ -37,24 +41,38 @@ public class Huffman
             HuffNode root = HuffTreeParser.buildTree(bytes);
             HuffTreeParser.encodeTree(root, io);
 
-            HuffEncoder.encode(bytes, root, io);
+            CODES = new String[257];
+            formCodeTable(root, "");
+            encode(Constants.HUFFMAN_EOF_INDEX, io);
+
+            for (byte b : bytes)
+                encode(b, io);
+
+            encode(Constants.HUFFMAN_EOF_INDEX, io);
+            io.writeByte((byte) 0);
+
             return io.getBytesOut();
         }
     }
 
     /**
-     * Decompresses given file.
+     * Decompresses the given file using vanilla Huffman decoding.
      *
      * <p>Tries first to read file header, which should contain all information needed for
-     * decompression; then decodes the compressed data with the Huffman tree extracted from the
+     * decompression; then decodes the compressed data using the Huffman tree extracted from the
      * header.</p>
      *
      * <p>Apart from checking the 32-bit tag in the header, there are practically no other measures
      * to verify the file. Passing in a valid file is method caller's responsibility.</p>
      *
+     * <p>Keeps on reading the input stream until a pseudo-EoF marker (as instructed by the header)
+     * is encountered. Throws {@code EOFException} if no such marker is seen before reaching the end
+     * of the input stream.</p>
+     *
      * @param bytes file to decompress, as byte array
      * @return decompressed file, as byte array
      * @throws IllegalArgumentException if file does not have the correct identifier in its header
+     * @throws EOFException if expected pseudo-EoF marker is not present in the input stream
      * @throws IOException if there's an error writing to or reading from the I/O streams
      */
     public static byte[] decompress(byte[] bytes) throws IOException
@@ -65,9 +83,50 @@ public class Huffman
                 throw new IllegalArgumentException("Not a Huffman compressed file");
 
             HuffNode root = HuffTreeParser.decodeTree(io);
-            HuffEncoder.decode(root, io);
+            EOF_REACHED = false;
+
+            while (!EOF_REACHED)
+                decode(root, io);
 
             return io.getBytesOut();
+        }
+    }
+
+
+    /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
+
+
+    private static void decode(HuffNode node, BinaryIO io) throws IOException
+    {
+        while (!node.isLeaf())
+            node = io.readBit()
+                    ? node.getRight()
+                    : node.getLeft();
+
+        if (node.isEoF())
+            EOF_REACHED = true;
+        else
+            io.writeByte(node.getValue());
+    }
+
+    private static void encode(int value, BinaryIO io) throws IOException
+    {
+        for (char c : CODES[value + 128].toCharArray())
+            io.writeBit(c == '1');
+    }
+
+    private static void formCodeTable(HuffNode node, String code)
+    {
+        int i = (node.isEoF())
+                ? Constants.HUFFMAN_EOF_INDEX
+                : node.getValue();
+
+        if (node.isLeaf())
+            CODES[i + 128] = code;
+        else
+        {
+            formCodeTable(node.getLeft(),  code + "0");
+            formCodeTable(node.getRight(), code + "1");
         }
     }
 }
