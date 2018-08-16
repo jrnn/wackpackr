@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class HuffmanTest
+public class HuffCompressorTest
 {
     private final String s1_initial = "Appilan pappilan apupapin papupata pankolla kiehuu ja kuohuu. Appilan pappilan piski, paksuposki pisti apupapin papupadan poskeensa.";
     private final byte[] s1_compressed = {7, 3, 25, -122, 22, -103, 5, -64, 90, -59, -88, -128, 75, 44, -110, -27, -94, -126, -73, 45, -21, -91, -107, 97, 93, 87, 59, 100, -110, 117, 31, -44, 92, -93, -6, -114, 121, -56, -94, -25, -99, 118, 46, -88, -73, -1, -116, 11, -26, -18, 50, 49, -114, -76, -35, -46, -103, -44, 127, 81, 114, -113, -22, 40, -12, 9, 41, 116, 123, -101, 122, 1, 71, -82, 7, 60, -28, 81, 115, -50, -109, -44, 91, 122, 47, -66, -67, -91, -110, 0};

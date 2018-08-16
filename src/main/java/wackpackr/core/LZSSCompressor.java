@@ -10,7 +10,7 @@ import wackpackr.io.BinaryIO;
  *
  * @author Juho Juurinen
  */
-public class LZSS
+public class LZSSCompressor
 {
     private static boolean EOF_REACHED;
 

@@ -16,11 +16,11 @@ public class LZSSTest
     public void LZSSCompressionWorks() throws IOException
     {
         Assert.assertArrayEquals(
-                LZSS.compress(s1_initial.getBytes()),
+                LZSSCompressor.compress(s1_initial.getBytes()),
                 s1_compressed
         );
         Assert.assertArrayEquals(
-                LZSS.compress(s2_initial.getBytes()),
+                LZSSCompressor.compress(s2_initial.getBytes()),
                 s2_compressed
         );
     }
@@ -31,14 +31,14 @@ public class LZSSTest
         Assert.assertEquals(
                 s1_initial,
                 new String(
-                        LZSS.decompress(s1_compressed),
+                        LZSSCompressor.decompress(s1_compressed),
                         StandardCharsets.UTF_8
                 )
         );
         Assert.assertEquals(
                 s2_initial,
                 new String(
-                        LZSS.decompress(s2_compressed),
+                        LZSSCompressor.decompress(s2_compressed),
                         StandardCharsets.UTF_8
                 )
         );
@@ -48,6 +48,6 @@ public class LZSSTest
     public void throwsExceptionIfIncorrectTagInHeader() throws IOException
     {
         byte[] invalid = new byte[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        LZSS.decompress(invalid);
+        LZSSCompressor.decompress(invalid);
     }
 }

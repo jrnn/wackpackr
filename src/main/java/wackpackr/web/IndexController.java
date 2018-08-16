@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import wackpackr.core.HuffCompressor;
-import wackpackr.core.LZSS;
+import wackpackr.core.LZSSCompressor;
 
 @Controller
 public class IndexController
@@ -62,12 +62,12 @@ public class IndexController
             HUFF_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";
 
             start = System.nanoTime();
-            compressed = LZSS.compress(initial);
+            compressed = LZSSCompressor.compress(initial);
             end = System.nanoTime();
             LZSS_COMPRESS = String.format("%,d", (end - start) / 1000000);
             LZSS_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
             start = System.nanoTime();
-            decompressed = LZSS.decompress(compressed);
+            decompressed = LZSSCompressor.decompress(compressed);
             end = System.nanoTime();
             LZSS_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
             LZSS_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";

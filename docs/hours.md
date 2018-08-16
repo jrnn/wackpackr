@@ -35,3 +35,4 @@
 | 15.8. | 2 | 69 | reading a bit about LZ78 and LZW, and taking first steps with code |
 | 16.8. | 2 | 71 | clumsy, malfunctioning LZW compression and decompression |
 | 16.8. | 2 | 73 | reorganizing code in compressor classes |
+| 16.8. | 2 | 75 | extending LZW |

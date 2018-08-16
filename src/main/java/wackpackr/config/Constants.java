@@ -13,12 +13,6 @@ public class Constants
     public static final long LZSS_TAG = 0x07072017;
 
     /**
-     * Index of pseudo-EoF node's prefix code in Huffman trees. Must be outside the byte value range
-     * [ -128, 127 ].
-     */
-    public static final int HUFFMAN_EOF_INDEX = Byte.MAX_VALUE + 1;
-
-    /**
      * Minimum length for a back reference to be encoded in LZSS. Because pointers themselves take
      * two bytes, it makes no sense to write back references below three bytes length.
      */

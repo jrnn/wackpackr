@@ -13,20 +13,20 @@ import wackpackr.util.HuffNode;
  */
 public class HuffCompressor
 {
-    private static String[] CODES;
+    private static final int EOF_INDEX = 256;
     private static boolean EOF_REACHED;
 
     /**
      * Compresses the given file using vanilla Huffman encoding.
      *
-     * <p>Information needed for decompression is encoded to the beginning of the output stream.
+     * <p>Information needed for decompression is encoded to the beginning of the compressed binary.
      * This header consists, in order, of:</p><ol><li>a 32-bit identifier indicating the used
      * compression technique</li><li>Huffman tree that maps prefix codes to byte values</li><li>
      * prefix code associated with the pseudo-EoF marker</li></ol>
      *
-     * <p>The header is followed by the actual data in encoded form. The output stream closes with
-     * the pseudo-EoF marker and, finally, a few 0s for padding — just to ensure that the EoF bit
-     * sequence is not partially cut off.</p>
+     * <p>The header is followed by the actual data in encoded form. The compressed binary closes
+     * with the pseudo-EoF marker and, finally, a few 0s for padding — just to ensure that the EoF
+     * bit sequence is not partially cut off.</p>
      *
      * @param bytes file to compress, as byte array
      * @return compressed file, as byte array
@@ -41,14 +41,14 @@ public class HuffCompressor
             HuffNode root = HuffTreeParser.buildTree(bytes);
             HuffTreeParser.encodeTree(root, io);
 
-            CODES = new String[257];
-            formCodeTable(root, "");
-            encode(Constants.HUFFMAN_EOF_INDEX, io);
+            String[] codes = new String[EOF_INDEX + 1];
+            formCodeTable(root, codes, "");
+            encode(codes[EOF_INDEX], io);
 
             for (byte b : bytes)
-                encode(b, io);
+                encode(codes[b + 128], io);
 
-            encode(Constants.HUFFMAN_EOF_INDEX, io);
+            encode(codes[EOF_INDEX], io);
             io.writeByte((byte) 0);
 
             return io.getBytesOut();
@@ -109,24 +109,22 @@ public class HuffCompressor
             io.writeByte(node.getValue());
     }
 
-    private static void encode(int value, BinaryIO io) throws IOException
+    private static void encode(String code, BinaryIO io) throws IOException
     {
-        for (char c : CODES[value + 128].toCharArray())
+        for (char c : code.toCharArray())
             io.writeBit(c == '1');
     }
 
-    private static void formCodeTable(HuffNode node, String code)
+    private static void formCodeTable(HuffNode node, String[] codes, String code)
     {
-        int i = (node.isEoF())
-                ? Constants.HUFFMAN_EOF_INDEX
-                : node.getValue();
-
-        if (node.isLeaf())
-            CODES[i + 128] = code;
+        if (node.isEoF())
+            codes[EOF_INDEX] = code;
+        else if (node.isLeaf())
+            codes[node.getValue() + 128] = code;
         else
         {
-            formCodeTable(node.getLeft(),  code + "0");
-            formCodeTable(node.getRight(), code + "1");
+            formCodeTable(node.getLeft(),  codes, code + "0");
+            formCodeTable(node.getRight(), codes, code + "1");
         }
     }
 }
