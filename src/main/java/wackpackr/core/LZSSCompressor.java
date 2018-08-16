@@ -10,7 +10,7 @@ import wackpackr.io.BinaryIO;
  *
  * @author Juho Juurinen
  */
-public class LZSSCompressor
+public class LZSSCompressor implements Compressor
 {
     private static boolean EOF_REACHED;
 
@@ -25,7 +25,8 @@ public class LZSSCompressor
      * @return compressed file, as byte array
      * @throws IOException if there's an error writing to the output stream
      */
-    public static byte[] compress(byte[] bytes) throws IOException
+    @Override
+    public byte[] compress(byte[] bytes) throws IOException
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {
@@ -46,7 +47,6 @@ public class LZSSCompressor
                 for (int i = 0; i < length; i++)
                     window.slideForward(io.readByteOrNull());
             }
-
             io      // EoF marker
                     .writeBit(true)
                     .writeBytes(new byte[]{ 0, 0, 0 });
@@ -71,7 +71,8 @@ public class LZSSCompressor
      * @throws EOFException if no pseudo-EoF marker is present in the input stream
      * @throws IOException if there's an error writing to or reading from the I/O streams
      */
-    public static byte[] decompress(byte[] bytes) throws IOException
+    @Override
+    public byte[] decompress(byte[] bytes) throws IOException
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {

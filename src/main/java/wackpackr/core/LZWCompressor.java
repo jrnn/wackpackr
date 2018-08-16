@@ -11,12 +11,13 @@ import wackpackr.io.BinaryIO;
  *
  * @author Juho Juurinen
  */
-public class LZW
+public class LZWCompressor implements Compressor
 {
     private static final int CODEWORD_BITSIZE = 16;
     private static final int MAX_DICTIONARY_SIZE = 1 << CODEWORD_BITSIZE;
 
-    public static byte[] compress(byte[] bytes) throws IOException
+    @Override
+    public byte[] compress(byte[] bytes) throws IOException
     {
         try (BinaryIO io = new BinaryIO())
         {
@@ -48,7 +49,8 @@ public class LZW
         }
     }
 
-    public static byte[] decompress(byte[] bytes) throws IOException
+    @Override
+    public byte[] decompress(byte[] bytes) throws IOException
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {

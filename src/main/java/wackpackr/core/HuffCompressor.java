@@ -11,7 +11,7 @@ import wackpackr.util.HuffNode;
  *
  * @author Juho Juurinen
  */
-public class HuffCompressor
+public class HuffCompressor implements Compressor
 {
     private static final int EOF_INDEX = 256;
     private static boolean EOF_REACHED;
@@ -32,7 +32,8 @@ public class HuffCompressor
      * @return compressed file, as byte array
      * @throws IOException if there's an error writing to the output stream
      */
-    public static byte[] compress(byte[] bytes) throws IOException
+    @Override
+    public byte[] compress(byte[] bytes) throws IOException
     {
         try (BinaryIO io = new BinaryIO())
         {
@@ -75,7 +76,8 @@ public class HuffCompressor
      * @throws EOFException if expected pseudo-EoF marker is not present in the input stream
      * @throws IOException if there's an error writing to or reading from the I/O streams
      */
-    public static byte[] decompress(byte[] bytes) throws IOException
+    @Override
+    public byte[] decompress(byte[] bytes) throws IOException
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {

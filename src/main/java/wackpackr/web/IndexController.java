@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import wackpackr.core.Compressor;
 import wackpackr.core.HuffCompressor;
 import wackpackr.core.LZSSCompressor;
 
@@ -45,29 +46,31 @@ public class IndexController
 
         long start, end;
         byte[] compressed, decompressed, initial;
+        Compressor huff = new HuffCompressor();
+        Compressor lzss = new LZSSCompressor();
 
         try
         {
             initial = file.getBytes();
 
             start = System.nanoTime();
-            compressed = HuffCompressor.compress(initial);
+            compressed = huff.compress(initial);
             end = System.nanoTime();
             HUFF_COMPRESS = String.format("%,d", (end - start) / 1000000);
             HUFF_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
             start = System.nanoTime();
-            decompressed = HuffCompressor.decompress(compressed);
+            decompressed = huff.decompress(compressed);
             end = System.nanoTime();
             HUFF_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
             HUFF_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";
 
             start = System.nanoTime();
-            compressed = LZSSCompressor.compress(initial);
+            compressed = lzss.compress(initial);
             end = System.nanoTime();
             LZSS_COMPRESS = String.format("%,d", (end - start) / 1000000);
             LZSS_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
             start = System.nanoTime();
-            decompressed = LZSSCompressor.decompress(compressed);
+            decompressed = lzss.decompress(compressed);
             end = System.nanoTime();
             LZSS_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
             LZSS_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";

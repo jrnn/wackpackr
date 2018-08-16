@@ -7,6 +7,8 @@ import org.junit.Test;
 
 public class HuffCompressorTest
 {
+    private final Compressor huff = new HuffCompressor();
+
     private final String s1_initial = "Appilan pappilan apupapin papupata pankolla kiehuu ja kuohuu. Appilan pappilan piski, paksuposki pisti apupapin papupadan poskeensa.";
     private final byte[] s1_compressed = {7, 3, 25, -122, 22, -103, 5, -64, 90, -59, -88, -128, 75, 44, -110, -27, -94, -126, -73, 45, -21, -91, -107, 97, 93, 87, 59, 100, -110, 117, 31, -44, 92, -93, -6, -114, 121, -56, -94, -25, -99, 118, 46, -88, -73, -1, -116, 11, -26, -18, 50, 49, -114, -76, -35, -46, -103, -44, 127, 81, 114, -113, -22, 40, -12, 9, 41, 116, 123, -101, 122, 1, 71, -82, 7, 60, -28, 81, 115, -50, -109, -44, 91, 122, 47, -66, -67, -91, -110, 0};
     private final String s2_initial = "Never gonna give you up, never gonna let you down, never gonna run around and desert you. Never gonna make you cry, never gonna say goodbye, never gonna tell a lie and hurt you.";
@@ -16,11 +18,11 @@ public class HuffCompressorTest
     public void huffmanCompressionWorks() throws IOException
     {
         Assert.assertArrayEquals(
-                HuffCompressor.compress(s1_initial.getBytes()),
+                huff.compress(s1_initial.getBytes()),
                 s1_compressed
         );
         Assert.assertArrayEquals(
-                HuffCompressor.compress(s2_initial.getBytes()),
+                huff.compress(s2_initial.getBytes()),
                 s2_compressed
         );
     }
@@ -31,14 +33,14 @@ public class HuffCompressorTest
         Assert.assertEquals(
                 s1_initial,
                 new String(
-                        HuffCompressor.decompress(s1_compressed),
+                        huff.decompress(s1_compressed),
                         StandardCharsets.UTF_8
                 )
         );
         Assert.assertEquals(
                 s2_initial,
                 new String(
-                        HuffCompressor.decompress(s2_compressed),
+                        huff.decompress(s2_compressed),
                         StandardCharsets.UTF_8
                 )
         );
@@ -48,6 +50,6 @@ public class HuffCompressorTest
     public void throwsExceptionIfIncorrectTagInHeader() throws IOException
     {
         byte[] invalid = new byte[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        HuffCompressor.decompress(invalid);
+        huff.decompress(invalid);
     }
 }

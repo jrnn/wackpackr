@@ -10,6 +10,8 @@ public class LZWTest
     @Test
     public void test() throws IOException
     {
+        Compressor lzw = new LZWCompressor();
+
         String[] inputs = {
             "Appilan pappilan apupapin papupata pankolla kiehuu ja kuohuu. Appilan pappilan piski, paksuposki pisti apupapin papupadan poskeensa.",
             "Never gonna give you up, never gonna let you down, never gonna run around and desert you. Never gonna make you cry, never gonna say goodbye, never gonna tell a lie and hurt you.",
@@ -19,8 +21,8 @@ public class LZWTest
         for (String input : inputs)
         {
             byte[] initial = input.getBytes(UTF_8);
-            byte[] compressed = LZW.compress(initial);
-            Assert.assertArrayEquals(initial, LZW.decompress(compressed));
+            byte[] compressed = lzw.compress(initial);
+            Assert.assertArrayEquals(initial, lzw.decompress(compressed));
         }
     }
 }
