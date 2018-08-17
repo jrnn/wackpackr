@@ -75,5 +75,29 @@
   package. I wanted to "keep things neat" by splitting code up to several
   classes, but apparently ended up totally trivializing the compressor classes
   that act as entry points
-  - For instance, [LZSS.java](https://github.com/jrnn/wackpackr/blob/master/src/main/java/wackpackr/core/LZSS.java)
-    doesn't really do anything other than call [LZSSEncoder.java](https://github.com/jrnn/wackpackr/blob/master/src/main/java/wackpackr/core/LZSSEncoder.java)
+
+## Week #4
+
+#### Main activities
+
+- Improving LZSS pattern search technique
+- Related to the above, implementing a couple of basic data structures (linked
+  list, hash table)
+- Getting started on LZW
+- Compulsive spring cleaning and code reorganization
+
+#### Next in line
+
+- Finalizing LZW and replacing java.util.TreeMap with something DYI
+- Doing performance testing(?)
+- Making sure there are no blind spots in unit testing
+
+#### Issues and questions
+
+- Nothing comes to mind, I'm quite happy with how things are coming along.
+- Is it OK if some classes are not tested directly, if they are "covered"
+  indirectly as part of some other tests?
+  - Namely, there are a couple of helper classes that only serve the compressor
+    classes, and I don't think testing them in isolation adds much value.
+- P.S. Got rid of `Arrays.copy(...)` by using `System.arraycopy(...)` instead
+  :-D that's one import down

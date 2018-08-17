@@ -37,3 +37,4 @@
 | 16.8. | 2 | 73 | reorganizing code in compressor classes |
 | 16.8. | 2 | 75 | extending LZW |
 | 17.8. | 4 | 79 | DYI ByteString utility with unit testing |
+| 17.8. | 1 | 80 | updating documentation |

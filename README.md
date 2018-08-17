@@ -18,9 +18,10 @@ Documentation
 -------------
 
 - [Project statement](https://github.com/jrnn/wackpackr/blob/master/docs/projectstatement.md)
+- [Implementation notes](https://github.com/jrnn/wackpackr/blob/master/docs/implementation.md)
+- [Testing documentation](https://github.com/jrnn/wackpackr/blob/master/docs/testing.md)
 - [Time tracking](https://github.com/jrnn/wackpackr/blob/master/docs/hours.md)
 - [Weekly reports](https://github.com/jrnn/wackpackr/blob/master/docs/weeklies.md)
-- (more stuff to come)
 
 See it in action
 ----------------
