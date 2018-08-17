@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 import wackpackr.io.BinaryIO;
+import wackpackr.util.ByteString;
 
 /**
  * All work and no play makes Jack a dull boy. Horribly messy and WIP application of LZW, look away.
@@ -74,13 +75,12 @@ public class LZWCompressor implements Compressor
                 if (D.containsKey(c))
                 {
                     y = D.get(c);
-                    D.put(i++, x.append(y.get(0)));
+                    D.put(i++, x.append(y.byteAt(0)));
                     out.append(y);
                 }
                 else
                 {
-                    x.append(D.get(p).get(0));
-                    D.put(i++, x);
+                    D.put(i++, x.append(D.get(p).byteAt(0)));
                     out.append(x);
                 }
 
@@ -129,63 +129,6 @@ public class LZWCompressor implements Compressor
             return (i != 0)
                     ? i
                     : Byte.compare(value, o.value);
-        }
-    }
-
-    private static final class ByteString
-    {
-        byte[] bytes = new byte[8];
-        int i = 0;
-
-        ByteString(byte... bs)
-        {
-            append(bs);
-        }
-
-        private void add(byte b)
-        {
-            if (i == bytes.length)
-                expand();
-            bytes[i++] = b;
-        }
-
-        ByteString append(byte... bs)
-        {
-            for (byte b : bs)
-                add(b);
-            return this;
-        }
-
-        ByteString append(ByteString bs)
-        {
-            append(bs.getBytes());
-            return this;
-        }
-
-        byte get(int index)
-        {
-            return bytes[index];
-        }
-
-        byte[] getBytes()
-        {
-            byte[] res = new byte[i];
-            System.arraycopy(bytes, 0, res, 0, i);
-            return res;
-        }
-
-        ByteString copy()
-        {
-            ByteString copy = new ByteString(bytes);
-            copy.i = i;
-            return copy;
-        }
-
-        private void expand()
-        {
-            byte[] newBytes = new byte[bytes.length << 1];
-            System.arraycopy(bytes, 0, newBytes, 0, bytes.length);
-            bytes = newBytes;
         }
     }
 }

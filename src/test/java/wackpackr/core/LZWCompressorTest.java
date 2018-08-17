@@ -5,7 +5,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class LZWTest
+public class LZWCompressorTest
 {
     @Test
     public void test() throws IOException
