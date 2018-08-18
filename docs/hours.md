@@ -39,3 +39,4 @@
 | 17.8. | 4 | 79 | DYI ByteString utility with unit testing |
 | 17.8. | 1 | 80 | updating documentation |
 | 18.8. | 1 | 81 | minor tweaks to and more unit tests for i/o wrapper and bytestring |
+| 18.8. | 1 | 82 | reworking compressor tests |
