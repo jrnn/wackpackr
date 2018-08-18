@@ -75,6 +75,8 @@ public class ByteStringTest
         copy.append((byte) 1);
 
         Assert.assertTrue(bs.size() == initialSize);
+        Assert.assertFalse(copy.size() == initialSize);
+
         Assert.assertArrayEquals(
                 bs.getBytes(),
                 initialBytes
@@ -185,5 +187,41 @@ public class ByteStringTest
                     bs.getBytes()
             );
         }
+    }
+
+    @Test
+    public void substringingGivesCorrectRange()
+    {
+        for (int i = 97; i < N; i += 97)
+            Assert.assertArrayEquals(
+                    bs.getBytes(i),
+                    Arrays.copyOfRange(bytes, i, N)
+            );
+
+        for (int i = 43, j = N; i < j; i += 43, j -= 61)
+            Assert.assertArrayEquals(
+                    bs.getBytes(i, j),
+                    Arrays.copyOfRange(bytes, i, j)
+            );
+    }
+
+    @Test
+    public void substringingOutOfBoundsThrowsException()
+    {
+        int exceptions = 0;
+
+        for (int i : new int[]{ -1, N / 2 + 1, N + 1})
+            for (int j : new int[]{ -1, N / 2 - 1, N + 1 })
+                try
+                {
+                    bs.getBytes(i, j);
+                }
+                catch (Exception e)
+                {
+                    if (e.getClass() == IndexOutOfBoundsException.class)
+                        exceptions++;
+                }
+
+        Assert.assertTrue(exceptions == 9);
     }
 }

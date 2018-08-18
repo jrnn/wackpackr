@@ -85,10 +85,40 @@ public final class ByteString
      */
     public byte[] getBytes()
     {
-        byte[] bytesOut = new byte[size];
-        System.arraycopy(bytes, 0, bytesOut, 0, size);
+        return copyRange(0, size);
+    }
 
-        return bytesOut;
+    /**
+     * Returns all bytes in the ByteString as an array, beginning from the given index and extending
+     * to the end of the ByteString.
+     *
+     * <p>There are no references between the ByteString and the returned array, so the caller can
+     * safely modify the array without fear of undesired side-effects.</p>
+     *
+     * @param beginIndex zero-based beginning index, inclusive
+     * @return an array containing all bytes stored in the ByteString starting from the given index
+     * @throws IndexOutOfBoundsException if the given index is negative or greater than the size of
+     *         the ByteString
+     */
+    public byte[] getBytes(int beginIndex)
+    {
+        return copyRange(beginIndex, size);
+    }
+
+    /**
+     * Returns the bytes within the given bounds in the ByteString as an array.
+     *
+     * <p>There are no references between the ByteString and the returned array, so the caller can
+     * safely modify the array without fear of undesired side-effects.</p>
+     *
+     * @param beginIndex zero-based beginning index, inclusive
+     * @param endIndex zero-based ending index, exclusive
+     * @return an array containing all bytes stored in the ByteString within the given bounds
+     * @throws IndexOutOfBoundsException if you're doing something wrong
+     */
+    public byte[] getBytes(int beginIndex, int endIndex)
+    {
+        return copyRange(beginIndex, endIndex);
     }
 
     /**
@@ -107,7 +137,7 @@ public final class ByteString
      * given.
      *
      * @param bs byte sequence of arbitrary length
-     * @return this same ByteString instance (for method chaining)
+     * @return a reference to this object
      */
     public ByteString append(byte... bs)
     {
@@ -127,7 +157,7 @@ public final class ByteString
      * the same order.
      *
      * @param bs a ByteString instance
-     * @return this same ByteString instance (for method chaining)
+     * @return a reference to this object
      */
     public ByteString append(ByteString bs)
     {
@@ -157,5 +187,18 @@ public final class ByteString
         System.arraycopy(bytes, 0, newBytes, 0, size);
 
         bytes = newBytes;
+    }
+
+    private byte[] copyRange(int start, int end)
+    {
+        int length = end - start;
+
+        if (start < 0 || length < 0 || size < end)
+            throw new IndexOutOfBoundsException();
+
+        byte[] copy = new byte[length];
+        System.arraycopy(bytes, start, copy, 0, length);
+
+        return copy;
     }
 }

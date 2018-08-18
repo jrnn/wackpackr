@@ -31,7 +31,7 @@ public class BinaryIO implements AutoCloseable
 
     /**
      * Constructs a new BinaryIO instance for both reading and writing purposes, with the given byte
-     * array set as the input stream.
+     * array as the input stream.
      *
      * @param bytes input buffer
      */
@@ -43,10 +43,10 @@ public class BinaryIO implements AutoCloseable
     /**
      * Reads and returns the next bit in the input stream.
      *
-     * @return the next bit in input stream as boolean
+     * @return the next bit in the input stream as boolean
      * @throws NullPointerException if no input stream has been set
      * @throws IOException if there's an error reading the input stream
-     * @throws EOFException if input stream has been read through to the end
+     * @throws EOFException if the input stream has been read through to the end
      */
     public boolean readBit() throws IOException
     {
@@ -66,10 +66,10 @@ public class BinaryIO implements AutoCloseable
      * Reads and returns the next byte in the input stream, irrespective of where the read pointer
      * is within current byte buffer.
      *
-     * @return the next byte in input stream
+     * @return the next byte in the input stream
      * @throws NullPointerException if no input stream has been set
      * @throws IOException if there's an error reading the input stream
-     * @throws EOFException if input stream has been read through to the end
+     * @throws EOFException if the input stream has been read through to the end
      */
     public byte readByte() throws IOException
     {
@@ -90,7 +90,7 @@ public class BinaryIO implements AutoCloseable
      * Reads and returns the next byte in the input stream, or {@code null} if the input stream has
      * already been read through to the end.
      *
-     * @return the next byte in input stream, or null if input stream has reached the end
+     * @return the next byte in input stream, or null if the input stream has reached the end
      * @throws NullPointerException if no input stream has been set
      * @throws IOException if there's an error reading the input stream
      */
@@ -112,7 +112,7 @@ public class BinaryIO implements AutoCloseable
      * @return requested number of bytes as array
      * @throws NullPointerException if no input stream has been set
      * @throws IOException if there's an error reading the input stream
-     * @throws EOFException if input stream is read through to the end during operation
+     * @throws EOFException if the input stream is read through to the end during operation
      */
     public byte[] readBytes(int count) throws IOException
     {
@@ -125,18 +125,36 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Reads and returns the next 32-bit chunk in the input stream, cast as a long value.
+     * Reads and returns the next 16-bit chunk in the input stream, cast as an integer.
      *
-     * @return the next 32 bits in input stream as long
+     * @return the next 16 bits in the input stream as integer
      * @throws NullPointerException if no input stream has been set
      * @throws IOException if there's an error reading the input stream
-     * @throws EOFException if there is less than 32 bits left in input stream
+     * @throws EOFException if there is less than 16 bits left in the input stream
+     */
+    public int read16Bits() throws IOException
+    {
+        int i = (readByte() & 0xFF);
+
+        i <<= 8;
+        i |= (readByte() & 0xFF);
+
+        return i;
+    }
+
+    /**
+     * Reads and returns the next 32-bit chunk in the input stream, cast as a long value.
+     *
+     * @return the next 32 bits in the input stream as long
+     * @throws NullPointerException if no input stream has been set
+     * @throws IOException if there's an error reading the input stream
+     * @throws EOFException if there is less than 32 bits left in the input stream
      */
     public long read32Bits() throws IOException
     {
         long l = 0L;
 
-        for (int i = 0; i < 4; i++)
+        for (int k = 0; k < 4; k++)
         {
             l <<= 8;
             l |= (readByte() & 0xFF);
@@ -149,7 +167,7 @@ public class BinaryIO implements AutoCloseable
      * Writes one bit at the end of the output stream.
      *
      * @param b bit to write as boolean
-     * @return this same BinaryIO instance (for method chaining)
+     * @return a reference to this object
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO writeBit(boolean b) throws IOException
@@ -168,11 +186,11 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Writes one byte at the end of the output stream, irrespective of where the write pointer is
+     * Writes one byte to the end of the output stream, irrespective of where the write pointer is
      * within current byte buffer.
      *
      * @param b byte to write
-     * @return this same BinaryIO instance (for method chaining)
+     * @return a reference to this object
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO writeByte(byte b) throws IOException
@@ -187,10 +205,10 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Writes an arbitrary number of bytes at the end of the output stream.
+     * Writes an arbitrary number of bytes to the end of the output stream.
      *
      * @param bs bytes to write, as array
-     * @return this same BinaryIO instance (for method chaining)
+     * @return a reference to this object
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO writeBytes(byte[] bs) throws IOException
@@ -202,19 +220,34 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Writes a 32-bit chunk at the end of the output stream.
+     * Writes a 16-bit chunk to the end of the output stream.
+     *
+     * @param i 16 bits of data to write, as integer
+     * @return a reference to this object
+     * @throws IOException if there's an error writing to the output stream
+     */
+    public BinaryIO write16Bits(int i) throws IOException
+    {
+        writeByte((byte) (i >> 8));
+        writeByte((byte) (i & 0xFF));
+
+        return this;
+    }
+
+    /**
+     * Writes a 32-bit chunk to the end of the output stream.
      *
      * @param l 32 bits of data to write, as long
-     * @return this same BinaryIO instance (for method chaining)
+     * @return a reference to this object
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO write32Bits(long l) throws IOException
     {
         byte[] bs = new byte[4];
 
-        for (int i = 3; i >= 0; i--)
+        for (int k = 3; k >= 0; k--)
         {
-            bs[i] = (byte) (l & 0xFF);
+            bs[k] = (byte) (l & 0xFF);
             l >>= 8;
         }
 

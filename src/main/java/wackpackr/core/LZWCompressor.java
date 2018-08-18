@@ -38,13 +38,13 @@ public class LZWCompressor implements Compressor
                     p = D.get(pc);
                 else
                 {
-                    write16Bits(p, io);
+                    io.write16Bits(p);
                     D.put(pc, i++);
                     p = c + 128;
                 }
             }
-            write16Bits(p, io);
-            write16Bits(MAX_DICTIONARY_SIZE - 1, io);  // eof
+            io.write16Bits(p);
+            io.write16Bits(MAX_DICTIONARY_SIZE - 1);    // eof
 
             return io.getBytesOut();
         }
@@ -60,13 +60,13 @@ public class LZWCompressor implements Compressor
             for (; i < 256; i++)
                 D.put(i, new ByteString((byte)(i - 128)));
 
-            int c, p = read16Bits(io);
+            int c, p = io.read16Bits();
             ByteString out = D.get(p).copy();
             ByteString x, y;
 
             while (true)
             {
-                c = read16Bits(io);
+                c = io.read16Bits();
                 x = D.get(p).copy();
 
                 if (c == MAX_DICTIONARY_SIZE - 1)  // eof
@@ -89,26 +89,6 @@ public class LZWCompressor implements Compressor
 
             return out.getBytes();
         }
-    }
-
-    private static int read16Bits(BinaryIO io) throws IOException
-    {
-        int i = 0;
-
-        for (int k = 0; k < 2; k++)
-        {
-            i <<= 8;
-            i |= (io.readByte() & 0xFF);
-        }
-
-        return i;
-    }
-
-    private static void write16Bits(int i, BinaryIO io) throws IOException
-    {
-        io
-                .writeByte((byte) (i >> 8))
-                .writeByte((byte) (i & 0xFF));
     }
 
     private static final class Codeword implements Comparable<Codeword>
