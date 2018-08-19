@@ -78,4 +78,10 @@ public class HuffCompressorTest
         byte[] invalid = new byte[]{ 7, 3, 25, -122, 22, -103, 5, -64, 90, -59, -88, -128, 75, 44, -110, -27, -94, -126, -73, 45, -21, -91, -107, 97, 93, 87, 59, 100 };
         huff.decompress(invalid);
     }
+
+    @Test
+    public void compressorKnowsItsName()
+    {
+        Assert.assertEquals("Huffman", huff.getName());
+    }
 }

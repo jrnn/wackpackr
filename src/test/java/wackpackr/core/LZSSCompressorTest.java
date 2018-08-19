@@ -78,4 +78,10 @@ public class LZSSCompressorTest
         byte[] invalid = new byte[]{ 7, 7, 32, 23, 32, -100, 14, 6, -109, 97, -124, -36, 32, 56, 24, 96, 18, -122, 19, -127, -42, 1, -128, 105, -128, -111, 64, 40, 14 };
         lzss.decompress(invalid);
     }
+
+    @Test
+    public void compressorKnowsItsName()
+    {
+        Assert.assertEquals("LZSS", lzss.getName());
+    }
 }

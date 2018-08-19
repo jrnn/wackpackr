@@ -13,6 +13,11 @@ public class Constants
     public static final long LZSS_TAG = 0x07072017;
 
     /**
+     * 32-bit identifier placed at the head of LZW compressed files.
+     */
+    public static final long LZW_TAG = 0x04092009;
+
+    /**
      * Minimum length for a back reference to be encoded in LZSS. Because pointers themselves take
      * two bytes, it makes no sense to write back references below three bytes length.
      */

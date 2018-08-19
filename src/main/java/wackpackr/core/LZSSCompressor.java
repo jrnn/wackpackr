@@ -82,6 +82,11 @@ public class LZSSCompressor implements Compressor
         }
     }
 
+    @Override
+    public String getName() {
+        return "LZSS";
+    }
+
 
     /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 

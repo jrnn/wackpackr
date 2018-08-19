@@ -3,6 +3,7 @@ package wackpackr.core;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
+import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.ByteString;
 
@@ -22,6 +23,8 @@ public class LZWCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO())
         {
+            io.write32Bits(Constants.LZW_TAG);
+
             Map<Codeword, Integer> D = new TreeMap<>();
             int i = 0;
             for (; i < 256; i++)
@@ -55,6 +58,9 @@ public class LZWCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {
+            if (io.read32Bits() != Constants.LZW_TAG)
+                throw new IllegalArgumentException("Not a LZW compressed file");
+
             Map<Integer, ByteString> D = new TreeMap<>();
             int i = 0;
             for (; i < 256; i++)
@@ -89,6 +95,11 @@ public class LZWCompressor implements Compressor
 
             return out.getBytes();
         }
+    }
+
+    @Override
+    public String getName() {
+        return "LZW";
     }
 
     private static final class Codeword implements Comparable<Codeword>

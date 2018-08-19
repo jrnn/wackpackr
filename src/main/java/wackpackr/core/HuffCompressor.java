@@ -94,6 +94,11 @@ public class HuffCompressor implements Compressor
         }
     }
 
+    @Override
+    public String getName() {
+        return "Huffman";
+    }
+
 
     /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
