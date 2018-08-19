@@ -41,3 +41,4 @@
 | 18.8. | 1 | 81 | minor tweaks to and more unit tests for i/o wrapper and bytestring |
 | 18.8. | 1 | 82 | reworking compressor tests |
 | 19.8. | 2 | 84 | speed up LZW decompression (now 5x faster on average) by using a simple array instead of a map ('duh...) |
+| 19.8. | 2 | 86 | isolate dictionary-related stuff from LZW compressor to its own class |

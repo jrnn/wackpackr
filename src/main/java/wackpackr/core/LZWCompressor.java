@@ -1,8 +1,6 @@
 package wackpackr.core;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.TreeMap;
 import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.ByteString;
@@ -25,44 +23,29 @@ public class LZWCompressor implements Compressor
         {
             io.write32Bits(Constants.LZW_TAG);
 
-            Map<Codeword, Integer> D = init();
-            Codeword pc;
-            int i = 256;
-            int p = -1;
+            LZWDictionary dict = new LZWDictionary();
+            int index = -1, newIndex;
 
-            for (byte c : bytes)
+            for (byte b : bytes)
             {
-                if (i == MAX_DICTIONARY_SIZE - 2)
-                {
-                    D = init();
-                    i = 256;
-                }
-                pc = new Codeword(p, c);
+                newIndex = dict.get(index, b);
 
-                if (D.containsKey(pc))
-                    p = D.get(pc);
+                if (newIndex > 0)
+                    index = newIndex;
                 else
                 {
-                    io.write16Bits(p);
-                    D.put(pc, i++);
-                    p = c + 128;
+                    io.write16Bits(index);
+                    dict.put(index, b);
+                    index = b + 128;  // this should be = dict.get(-1, b) but we can cut corners
                 }
             }
             io      // eof
-                    .write16Bits(p)
+                    .write16Bits(index)
                     .write16Bits(MAX_DICTIONARY_SIZE - 1)
                     .writeByte((byte) 0);
 
             return io.getBytesOut();
         }
-    }
-
-    private Map<Codeword, Integer> init()
-    {
-        Map<Codeword, Integer> D = new TreeMap<>();
-        for (int i = 0; i < 256; i++)
-            D.put(new Codeword(-1, (byte)(i - 128)), i);
-        return D;
     }
 
     @Override
@@ -73,76 +56,39 @@ public class LZWCompressor implements Compressor
             if (io.read32Bits() != Constants.LZW_TAG)
                 throw new IllegalArgumentException("Not a LZW compressed file");
 
-            ByteString[] D = init2();
-            int i = 256;
-
+            LZWDictionary dict = new LZWDictionary();
             ByteString x, y;
-            int c, p = io.read16Bits();
-            io.writeBytes(D[p].getBytes());
 
-            while (true)
+            int index = io.read16Bits();
+            int newIndex = io.read16Bits();
+            io.writeBytes(dict.get(index).getBytes());
+
+            while (newIndex != MAX_DICTIONARY_SIZE - 1)
             {
-                if (i == MAX_DICTIONARY_SIZE -2)
-                {
-                    D = init2();
-                    i = 256;
-                }
-                c = io.read16Bits();
-                x = D[p].copy();
+                x = dict.get(index).copy();
+                y = dict.get(newIndex);
 
-                if (c == MAX_DICTIONARY_SIZE - 1)  // eof
-                    break;
-
-                if (D[c] != null)
+                if (y != null)
                 {
-                    y = D[c];
-                    D[i++] = x.append(y.byteAt(0));
+                    dict.put(x.append(y.byteAt(0)));
                     io.writeBytes(y.getBytes());
                 }
                 else
                 {
-                    D[i++] = x.append(D[p].byteAt(0));
+                    dict.put(x.append(x.byteAt(0)));
                     io.writeBytes(x.getBytes());
                 }
 
-                p = c;
+                index = newIndex;
+                newIndex = io.read16Bits();
             }
 
             return io.getBytesOut();
         }
     }
 
-    private ByteString[] init2()
-    {
-        ByteString[] D = new ByteString[MAX_DICTIONARY_SIZE];
-        for (int i = 0; i < 256; i++)
-            D[i] = new ByteString((byte)(i - 128));
-        return D;
-    }
-
     @Override
     public String getName() {
         return "LZW";
-    }
-
-    private static final class Codeword implements Comparable<Codeword>
-    {
-        int index;
-        byte value;
-
-        Codeword(int index, byte value)
-        {
-            this.index = index;
-            this.value = value;
-        }
-
-        @Override
-        public int compareTo(Codeword o)
-        {
-            int i = Integer.compare(index, o.index);
-            return (i != 0)
-                    ? i
-                    : Byte.compare(value, o.value);
-        }
     }
 }
