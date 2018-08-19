@@ -13,13 +13,15 @@ import wackpackr.io.BinaryIO;
 public class LZSSCompressor implements Compressor
 {
     private static boolean EOF_REACHED;
+    private static LZSSWindowOperator WINDOW;
 
     /**
-     * Compresses given file using LZSS decoding.
+     * Compresses given file using LZSS encoding.
      *
      * <p>Writes a 32-bit identifier, indicating the used compression technique, to the beginning
-     * of the compressed binary; and a nonsensical "zero-offset" pointer as a pseudo-EoF marker to
-     * the end, plus a few 0s to ensure that the EoF bit sequence is not partially cut off.</p>
+     * of the compressed binary, followed by the actual data in encoded form. Closes with and a
+     * nonsensical "zero-offset" pointer as a pseudo-EoF marker, plus a few 0s to ensure that the
+     * EoF bit sequence is not partially cut off.</p>
      *
      * @param bytes file to compress, as byte array
      * @return compressed file, as byte array
@@ -33,20 +35,11 @@ public class LZSSCompressor implements Compressor
             io.write32Bits(Constants.LZSS_TAG);
 
             byte[] initialBuffer = io.readBytes(Constants.LZSS_BUFFER_SIZE);
-            LZSSWindowOperator window = new LZSSWindowOperator(initialBuffer);
+            WINDOW = new LZSSWindowOperator(initialBuffer);
 
-            while (window.peek() != null)
-            {
-                int[] longestMatch = window.findLongestMatch();
-                int length = (longestMatch[0] < Constants.LZSS_THRESHOLD_LENGTH)
-                        ? 1
-                        : longestMatch[0];
+            while (WINDOW.peek() != null)
+                encode(io);
 
-                encode(window, io, longestMatch[1], length - Constants.LZSS_THRESHOLD_LENGTH);
-
-                for (int i = 0; i < length; i++)
-                    window.slideForward(io.readByteOrNull());
-            }
             io      // EoF marker
                     .writeBit(true)
                     .writeBytes(new byte[]{ 0, 0, 0 });
@@ -79,11 +72,11 @@ public class LZSSCompressor implements Compressor
             if (io.read32Bits() != Constants.LZSS_TAG)
                 throw new IllegalArgumentException("Not a LZSS compressed file");
 
-            LZSSWindowOperator window = new LZSSWindowOperator();
+            WINDOW = new LZSSWindowOperator();
             EOF_REACHED = false;
 
             while (!EOF_REACHED)
-                decode(window, io);
+                decode(io);
 
             return io.getBytesOut();
         }
@@ -93,7 +86,7 @@ public class LZSSCompressor implements Compressor
     /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
-    private static void decode(LZSSWindowOperator window, BinaryIO io) throws IOException
+    private void decode(BinaryIO io) throws IOException
     {
         if (io.readBit())
         {   // pointer block
@@ -105,28 +98,35 @@ public class LZSSCompressor implements Compressor
                 EOF_REACHED = true;
             else
                 for (int i = 0; i < length; i++)
-                    io.writeByte(window.copyBackReference(offset - 1));
+                    io.writeByte(WINDOW.copyBackReference(offset - 1));
         }
         else
         {   // literal block
             byte b = io.readByte();
-            window.insertAndMove(b);
+            WINDOW.insertAndMove(b);
             io.writeByte(b);
         }
     }
 
-    private static void encode(
-            LZSSWindowOperator window, BinaryIO io, int offset, int length
-    ) throws IOException
+    private void encode(BinaryIO io) throws IOException
     {
-        if (length < 0)
+        int[] longestMatch = WINDOW.findLongestMatch();
+        int length = longestMatch[0], offset = longestMatch[1];
+
+        if (length < Constants.LZSS_THRESHOLD_LENGTH)
+        {
             io      // literal block
                     .writeBit(false)
-                    .writeByte(window.peek());
+                    .writeByte(WINDOW.peek());
+            length = 1;
+        }
         else
             io      // pointer block
                     .writeBit(true)
                     .writeByte((byte) (offset >> 4))
-                    .writeByte((byte) (offset << 4 | length));
+                    .writeByte((byte) (offset << 4 | (length - Constants.LZSS_THRESHOLD_LENGTH)));
+
+        for (int i = 0; i < length; i++)
+            WINDOW.slideForward(io.readByteOrNull());
     }
 }

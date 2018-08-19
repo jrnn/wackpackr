@@ -30,15 +30,7 @@ package wackpackr.util;
  */
 public class ErraticHashTable<E>
 {
-    /**
-     * Backing array whose indexes connect hash values to lists where elements with a certain key
-     * can be found.
-     */
     private final CircularDoublyLinkedList<E>[] buckets;
-
-    /**
-     * Number of buckets: that is, size of the backing array. Used as modulo when hashing.
-     */
     private final int size;
 
     /**

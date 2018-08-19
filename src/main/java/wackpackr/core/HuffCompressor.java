@@ -15,6 +15,7 @@ public class HuffCompressor implements Compressor
 {
     private static final int EOF_INDEX = 256;
     private static boolean EOF_REACHED;
+    private static final String[] CODES = new String[EOF_INDEX + 1];
 
     /**
      * Compresses the given file using vanilla Huffman encoding.
@@ -42,14 +43,13 @@ public class HuffCompressor implements Compressor
             HuffNode root = HuffTreeParser.buildTree(bytes);
             HuffTreeParser.encodeTree(root, io);
 
-            String[] codes = new String[EOF_INDEX + 1];
-            formCodeTable(root, codes, "");
-            encode(codes[EOF_INDEX], io);
+            formCodeTable(root, "");
+            encode(CODES[EOF_INDEX], io);
 
             for (byte b : bytes)
-                encode(codes[b + 128], io);
+                encode(CODES[b + 128], io);
 
-            encode(codes[EOF_INDEX], io);
+            encode(CODES[EOF_INDEX], io);
             io.writeByte((byte) 0);
 
             return io.getBytesOut();
@@ -98,7 +98,7 @@ public class HuffCompressor implements Compressor
     /*------PRIVATE HELPER METHODS BELOW, NO COMMENTS OR DESCRIPTION GIVEN------*/
 
 
-    private static void decode(HuffNode node, BinaryIO io) throws IOException
+    private void decode(HuffNode node, BinaryIO io) throws IOException
     {
         while (!node.isLeaf())
             node = io.readBit()
@@ -111,22 +111,22 @@ public class HuffCompressor implements Compressor
             io.writeByte(node.getValue());
     }
 
-    private static void encode(String code, BinaryIO io) throws IOException
+    private void encode(String code, BinaryIO io) throws IOException
     {
         for (char c : code.toCharArray())
             io.writeBit(c == '1');
     }
 
-    private static void formCodeTable(HuffNode node, String[] codes, String code)
+    private void formCodeTable(HuffNode node, String code)
     {
         if (node.isEoF())
-            codes[EOF_INDEX] = code;
+            CODES[EOF_INDEX] = code;
         else if (node.isLeaf())
-            codes[node.getValue() + 128] = code;
+            CODES[node.getValue() + 128] = code;
         else
         {
-            formCodeTable(node.getLeft(),  codes, code + "0");
-            formCodeTable(node.getRight(), codes, code + "1");
+            formCodeTable(node.getLeft(),  code + "0");
+            formCodeTable(node.getRight(), code + "1");
         }
     }
 }

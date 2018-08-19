@@ -23,10 +23,6 @@ public class CircularDoublyLinkedList<E>
      * list is empty, {@code sentinel.prev == sentinel == sentinel.next}.
      */
     private final Node sentinel = new Node();
-
-    /**
-     * Number of elements in the list.
-     */
     private int size = 0;
 
     /**

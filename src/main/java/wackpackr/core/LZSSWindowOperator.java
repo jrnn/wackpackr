@@ -8,33 +8,29 @@ import wackpackr.util.SlidingWindow;
  * Helper class that handles the "sliding window" dictionary needed in LZSS compression and
  * decompression.
  *
- * <p>Needs to be configured a bit differently depending whether compressing or decompressing. This
- * is reflected as two separate constructors, one for each case.</p>
+ * <p>There are separate constructors for compression vs. decompression purposes, because the window
+ * needs to be initialised a bit differently in each case.</p>
  *
  * <p>The decisive thing here is the technique used in longest match search, which practically
  * alone determines compression efficiency. Current implementation tries to reproduce a technique
- * used e.g. in Deflate: recurring three-byte sequences are memorised as they flow in and out of the
+ * used in Deflate: recurring three-byte sequences are memorised as they flow in and out of the
  * prefix window, so that searching can be limited only to positions where at least the first three
  * bytes match (which incidentally is also the threshold length for encoding a pointer).</p>
- *
- * <p>A hash table is used to associate three-byte sequences to positions, allowing insertion and
- * search in constant time.</p>
  *
  * @author Juho Juurinen
  */
 public class LZSSWindowOperator
 {
     private ErraticHashTable<Integer> positions;
-    private final SlidingWindow<Byte> window = new SlidingWindow(Constants.LZSS_WINDOW_SIZE);
+    private final SlidingWindow<Byte> window = new SlidingWindow<>(Constants.LZSS_WINDOW_SIZE);
 
     /**
      * Constructs a new sliding window operator with a lighter configuration for decoding purposes.
      * More specifically, the hash table (which is only needed for pattern matching) is not
      * initialised.
      *
-     * <p>A "dummy byte" is inserted at head of the window, just so that the read pointer can move
-     * one step ahead of the decoded stream; otherwise a {@code IndexOutOfBoundsException} would be
-     * thrown.</p>
+     * <p>A dummy byte is inserted at head of the window, just so that the read pointer can move
+     * one step ahead of the decoded stream.</p>
      */
     public LZSSWindowOperator()
     {
@@ -46,15 +42,11 @@ public class LZSSWindowOperator
      * memorising pattern recurrences is initialised, and the initial lookahead buffer is pushed
      * into the window.
      *
-     * <p>There will be maximum ~4100 elements stored in the hash table at any one time. Load factor
-     * should be in the 0.65~0.75 range, while table size should be a prime number midway between
-     * two powers of two. With these border conditions, an optimal size is 6151.</p>
-     *
      * @param initialBuffer lookahead buffer at beginning of decoding
      */
     public LZSSWindowOperator(byte[] initialBuffer)
     {
-        positions = new ErraticHashTable(6151);
+        positions = new ErraticHashTable<>(Constants.LZSS_BUCKETS);
 
         for (byte b : initialBuffer)
             window.insert(b);
@@ -73,40 +65,29 @@ public class LZSSWindowOperator
      */
     public int[] findLongestMatch()
     {
-        if (window.read(3) == null)
-            return new int[]{ 0, 0 };
+        int maxLength = 0, maxOffset = 0;
 
-        int maxLength = 0;
-        int maxOffset = 0;
-        Object[] ps = positions.get(
-                window.read(0),
-                window.read(1),
-                window.read(2)
-        ).toArrayReverse();
-
-        for (Object p : ps)
-        {
-            int length = 0;
-            int offset = window.cursor() - (int) p;
-
-            while (length < Constants.LZSS_BUFFER_SIZE)
+        if (window.read(3) != null)
+            for (Object p : positions.get(
+                    window.read(0),
+                    window.read(1),
+                    window.read(2)).toArrayReverse())
             {
-                if (window.read(length) == null)
-                    break;
+                int length = 0, offset = window.cursor() - (int) p;
 
-                if (!window.read(length - offset).equals(window.read(length)))
-                    break;
+                for (; length < Constants.LZSS_BUFFER_SIZE; length++)
+                    if (window.read(length) == null
+                            || !window.read(length - offset).equals(window.read(length)))
+                        break;
 
-                length++;
+                if (maxLength < length)
+                {
+                    maxLength = length;
+                    maxOffset = offset;
+                }
+                if (maxLength == Constants.LZSS_BUFFER_SIZE)
+                    break;
             }
-            if (maxLength < length)
-            {
-                maxLength = length;
-                maxOffset = offset;
-            }
-            if (maxLength == Constants.LZSS_BUFFER_SIZE)
-                break;
-        }
 
         return new int[]{ maxLength, maxOffset };
     }
@@ -116,8 +97,8 @@ public class LZSSWindowOperator
      * dumping the byte at the other end, if the prefix is full.
      *
      * <p>This method also handles the recording of positions of new three-byte sequences as they
-     * first enter the prefix window, as well as their deletion when they eventually are dumped out
-     * from the other end.</p>
+     * first enter the prefix window, as well as their deletion when they eventually drop out from
+     * the other end.</p>
      *
      * <p>At first glance, the deletion part looks problematic due to hash collisions: how to be
      * sure the correct value is deleted, when virtually any byte sequence may associate to it?
@@ -132,13 +113,11 @@ public class LZSSWindowOperator
         Byte out = window.insert(b);
 
         if (out != null)
-        {
             positions.get(
                     out,
                     window.read(-Constants.LZSS_PREFIX_SIZE + 1),
                     window.read(-Constants.LZSS_PREFIX_SIZE + 2)
             ).removeFirst();
-        }
 
         if (window.read(2) != null)
             positions.put(

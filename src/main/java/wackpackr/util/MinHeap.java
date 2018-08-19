@@ -22,19 +22,9 @@ import java.util.NoSuchElementException;
  */
 public class MinHeap<E>
 {
-    /**
-     * Initial and minimum size to allocate for the backing array.
-     */
     private static final int MIN_CAPACITY = 8;
 
-    /**
-     * Generic array used for storing the heap elements. Emulates a balanced binary tree.
-     */
     private Object[] heap  = new Object[MIN_CAPACITY];
-
-    /**
-     * Number of elements in the heap.
-     */
     private int size = 0;
 
     /**
@@ -124,8 +114,7 @@ public class MinHeap<E>
 
     private void heapify(int i)
     {
-        int left = left(i);
-        int right = right(i);
+        int left = left(i), right = right(i);
 
         if (right != -1)
         {

@@ -22,26 +22,9 @@ package wackpackr.util;
  */
 public class SlidingWindow<E>
 {
-    /**
-     * Backing array for storing elements, using circular access.
-     */
     private final Object[] queue;
-
-    /**
-     * Maximum number of elements retained in queue at any one time.
-     */
     private final int size;
-
-    /**
-     * Read pointer into the underlying array.
-     */
     private int cursor = 0;
-
-    /**
-     * Array index to which last inserted element was written. Also, tells how many elements have
-     * been inserted altogether (minus one). Due to circular access, must use modulo "window size"
-     * when reading from or writing to the array.
-     */
     private int head = -1;
 
     public SlidingWindow(int windowSize)

@@ -36,4 +36,13 @@ public class Constants
      * needs to accommodate at once both the prefix and lookahead buffer.
      */
     public static final int LZSS_WINDOW_SIZE = LZSS_PREFIX_SIZE + LZSS_BUFFER_SIZE;
+
+    /**
+     * Number of buckets to allocate for hash table that keeps track of three-byte occurrences in
+     * the prefix window during LZSS encoding. Table size optimally is a prime number not close to
+     * any power of two, and load factor preferably is in the 0.65~0.75 range. Since there will be a
+     * maximum of ~4100 elements in the hash table at any one time, the picked value (6151) meets
+     * the above conditions.
+     */
+    public static final int LZSS_BUCKETS = 6151;
 }
