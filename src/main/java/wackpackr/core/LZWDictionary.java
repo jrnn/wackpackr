@@ -1,7 +1,5 @@
 package wackpackr.core;
 
-import java.util.Map;
-import java.util.TreeMap;
 import wackpackr.util.ByteString;
 
 /**
@@ -16,7 +14,7 @@ public class LZWDictionary
 
     private int bsIndex, cwIndex;
     private ByteString[] bytestrings;
-    private final Map<Codeword, Integer> codewords = new TreeMap<>();
+    private Node[] nodes;
 
     public LZWDictionary()
     {
@@ -31,7 +29,18 @@ public class LZWDictionary
 
     public int get(int i, byte b)
     {
-        return codewords.getOrDefault(new Codeword(i, b), -1);
+        if (i < 0)
+            return b + 128;
+        Node n = nodes[i].child;
+        if (n == null)
+            return -1;
+        while (n != null)
+        {
+            if (n.value == b)
+                return n.index;
+            n = n.next;
+        }
+        return -1;
     }
 
     public void put(ByteString bs)
@@ -44,7 +53,19 @@ public class LZWDictionary
 
     public void put(int i, byte b)
     {
-        codewords.put(new Codeword(i, b), cwIndex++);
+        Node o = new Node(cwIndex, b);
+        Node n = nodes[i];
+        if (n.child == null)
+            n.child = o;
+        else
+        {
+            n = n.child;
+            while (n.next != null)
+                n = n.next;
+            n.next = o;
+        }
+        nodes[cwIndex++] = o;
+        //cwIndex++;
 
         if (cwIndex == MAX_DICTIONARY_SIZE - 2)
             initCw();
@@ -60,12 +81,11 @@ public class LZWDictionary
 
     private void initCw()
     {
-        codewords.clear();
-
+        nodes = new Node[MAX_DICTIONARY_SIZE];
         for (cwIndex = 0; cwIndex < 256; cwIndex++)
-            codewords.put(
-                    new Codeword(-1, (byte) (cwIndex - 128)),
-                    cwIndex
+            nodes[cwIndex] = new Node(
+                    cwIndex,
+                    (byte) (cwIndex - 128)
             );
     }
 
@@ -87,6 +107,19 @@ public class LZWDictionary
             return (i != 0)
                     ? i
                     : Byte.compare(value, o.value);
+        }
+    }
+
+    private static final class Node
+    {
+        final int index;
+        final byte value;
+        Node next = null, child = null;
+
+        Node(int index, byte value)
+        {
+            this.index = index;
+            this.value = value;
         }
     }
 }
