@@ -31,16 +31,13 @@ public class LZWDictionary
     {
         if (i < 0)
             return b + 128;
-        Node n = nodes[i].child;
-        if (n == null)
-            return -1;
-        while (n != null)
-        {
-            if (n.value == b)
-                return n.index;
-            n = n.next;
-        }
-        return -1;
+
+        Node node = nodes[i];
+        node = (b < node.value)
+                ? node.childLeft
+                : node.childRight;
+
+        return search(node, b);
     }
 
     public void put(ByteString bs)
@@ -53,22 +50,37 @@ public class LZWDictionary
 
     public void put(int i, byte b)
     {
-        Node o = new Node(cwIndex, b);
-        Node n = nodes[i];
-        if (n.child == null)
-            n.child = o;
+        Node node = nodes[i];
+        Node newNode = new Node(cwIndex, b);
+        nodes[cwIndex++] = newNode;
+
+        if (b < node.value)
+            if (node.childLeft == null)
+                node.childLeft = newNode;
+            else
+                insert(newNode, node.childLeft);
         else
-        {
-            n = n.child;
-            while (n.next != null)
-                n = n.next;
-            n.next = o;
-        }
-        nodes[cwIndex++] = o;
-        //cwIndex++;
+            if (node.childRight == null)
+                node.childRight = newNode;
+            else
+                insert(newNode, node.childRight);
 
         if (cwIndex == MAX_DICTIONARY_SIZE - 2)
             initCw();
+    }
+
+    private static final class Node
+    {
+        final int index;
+        final byte value;
+        Node nextLeft = null, nextRight = null;
+        Node childLeft = null, childRight = null;
+
+        Node(int index, byte value)
+        {
+            this.index = index;
+            this.value = value;
+        }
     }
 
     private void initBs()
@@ -82,6 +94,7 @@ public class LZWDictionary
     private void initCw()
     {
         nodes = new Node[MAX_DICTIONARY_SIZE];
+
         for (cwIndex = 0; cwIndex < 256; cwIndex++)
             nodes[cwIndex] = new Node(
                     cwIndex,
@@ -89,37 +102,32 @@ public class LZWDictionary
             );
     }
 
-    private static final class Codeword implements Comparable<Codeword>
+    private int search(Node node, byte b)
     {
-        private final int index;
-        private final byte value;
+        if (node == null)
+            return -1;
 
-        Codeword(int index, byte value)
-        {
-            this.index = index;
-            this.value = value;
-        }
+        if (b == node.value)
+            return node.index;
 
-        @Override
-        public int compareTo(Codeword o)
-        {
-            int i = Integer.compare(index, o.index);
-            return (i != 0)
-                    ? i
-                    : Byte.compare(value, o.value);
-        }
+        node = (b < node.value)
+                ? node.nextLeft
+                : node.nextRight;
+
+        return search(node, b);
     }
 
-    private static final class Node
+    private void insert(Node newNode, Node node)
     {
-        final int index;
-        final byte value;
-        Node next = null, child = null;
-
-        Node(int index, byte value)
-        {
-            this.index = index;
-            this.value = value;
-        }
+        if (newNode.value < node.value)
+            if (node.nextLeft == null)
+                node.nextLeft = newNode;
+            else
+                insert(newNode, node.nextLeft);
+        else
+            if (node.nextRight == null)
+                node.nextRight = newNode;
+            else
+                insert(newNode, node.nextRight);
     }
 }

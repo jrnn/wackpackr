@@ -6,8 +6,7 @@ import wackpackr.io.BinaryIO;
 import wackpackr.util.ByteString;
 
 /**
- * All work and no play makes Jack a dull boy. Horribly messy and WIP application of LZW, look away.
- * Nothing to see here, hombre. NOTHING TO SEE HERE.
+ * LZW that's starting to perform nicely. JavaDoc and refactoring still needed.
  *
  * @author Juho Juurinen
  */
