@@ -25,16 +25,18 @@ public class LZWCompressor implements Compressor
         {
             io.write32Bits(Constants.LZW_TAG);
 
-            Map<Codeword, Integer> D = new TreeMap<>();
-            int i = 0;
-            for (; i < 256; i++)
-                D.put(new Codeword(-1, (byte)(i - 128)), i);
-
-            int p = -1;
+            Map<Codeword, Integer> D = init();
             Codeword pc;
+            int i = 256;
+            int p = -1;
 
             for (byte c : bytes)
             {
+                if (i == MAX_DICTIONARY_SIZE - 2)
+                {
+                    D = init();
+                    i = 256;
+                }
                 pc = new Codeword(p, c);
 
                 if (D.containsKey(pc))
@@ -46,11 +48,21 @@ public class LZWCompressor implements Compressor
                     p = c + 128;
                 }
             }
-            io.write16Bits(p);
-            io.write16Bits(MAX_DICTIONARY_SIZE - 1);    // eof
+            io      // eof
+                    .write16Bits(p)
+                    .write16Bits(MAX_DICTIONARY_SIZE - 1)
+                    .writeByte((byte) 0);
 
             return io.getBytesOut();
         }
+    }
+
+    private Map<Codeword, Integer> init()
+    {
+        Map<Codeword, Integer> D = new TreeMap<>();
+        for (int i = 0; i < 256; i++)
+            D.put(new Codeword(-1, (byte)(i - 128)), i);
+        return D;
     }
 
     @Override
@@ -61,40 +73,51 @@ public class LZWCompressor implements Compressor
             if (io.read32Bits() != Constants.LZW_TAG)
                 throw new IllegalArgumentException("Not a LZW compressed file");
 
-            Map<Integer, ByteString> D = new TreeMap<>();
-            int i = 0;
-            for (; i < 256; i++)
-                D.put(i, new ByteString((byte)(i - 128)));
+            ByteString[] D = init2();
+            int i = 256;
 
-            int c, p = io.read16Bits();
-            ByteString out = D.get(p).copy();
             ByteString x, y;
+            int c, p = io.read16Bits();
+            io.writeBytes(D[p].getBytes());
 
             while (true)
             {
+                if (i == MAX_DICTIONARY_SIZE -2)
+                {
+                    D = init2();
+                    i = 256;
+                }
                 c = io.read16Bits();
-                x = D.get(p).copy();
+                x = D[p].copy();
 
                 if (c == MAX_DICTIONARY_SIZE - 1)  // eof
                     break;
 
-                if (D.containsKey(c))
+                if (D[c] != null)
                 {
-                    y = D.get(c);
-                    D.put(i++, x.append(y.byteAt(0)));
-                    out.append(y);
+                    y = D[c];
+                    D[i++] = x.append(y.byteAt(0));
+                    io.writeBytes(y.getBytes());
                 }
                 else
                 {
-                    D.put(i++, x.append(D.get(p).byteAt(0)));
-                    out.append(x);
+                    D[i++] = x.append(D[p].byteAt(0));
+                    io.writeBytes(x.getBytes());
                 }
 
                 p = c;
             }
 
-            return out.getBytes();
+            return io.getBytesOut();
         }
+    }
+
+    private ByteString[] init2()
+    {
+        ByteString[] D = new ByteString[MAX_DICTIONARY_SIZE];
+        for (int i = 0; i < 256; i++)
+            D[i] = new ByteString((byte)(i - 128));
+        return D;
     }
 
     @Override

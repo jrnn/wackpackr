@@ -8,31 +8,39 @@ latest coverage reports.
 Classes in wackpackr.io and wackpackr.util packages have extensive unit testing,
 with near-100% coverage.
 
-The core compressor classes also *look to be* well covered, but the tests are
-currently very, very superficial. Also, the helper classes are not tested at all
-individually, only indirectly as part of the compressor testing. This probably
-is not an issue?
+The core compressor classes are also quite well covered. The test suite, besides
+must-have functionality tests, also runs several rounds of compressing and
+decompressing in turn with random, textual, and image data of various sizes.
+These tests, however, only check that the data decompresses to its initial form,
+i.e. there are no requirements on performance for a test to pass.
+
+Compressor helper classes are not tested at all individually, only indirectly as
+part of the compressor testing. This probably is not an issue?
 
 There is and will be no automatic testing for anything web/UI related, as these
 are just nice-to-have features for convenience.
 
 ### Performance testing
 
-No systematic performance testing yet...
+As briefly mentioned above, each compressor class is tested for performance as
+part of the overall test suite — but no thresholds have yet been set in terms of
+speed and compression rate. The tests pass as long as nothing is "lost in
+translation".
 
-The web UI reports some basic metrics (compression rate and time). Based on
-rough, non-systematic observations, Huffman compression performs 4-5 times
-faster than LZSS, but LZSS can reach better compression rates; as for
-decompression, on the contrary, LZSS is clearly faster than Huffman.
+Though each time running the tests produces a small dataset on performance with
+different kinds of input and filesizes, I haven't yet collected the data nor
+done any analysis. Based just on casual observation, it is quite obvious that
+Huffman compression performs often at least 4-5 times faster than LZSS, and LZSS
+performs somewhat faster than LZW; but on the other hand, LZSS and LZW can at
+best reach much lower compression rates than Huffman, with LZSS typically
+outperforming LZW. In comparison, decompression is quite fast with all
+algorithms.
 
 Through a few rounds of improving the LZSS "longest match search" technique,
 compression performance has incrementally improved. The current version works,
-on average, 100 times faster than the initial brute-force implementation.
-
-Idea is to extend this so that results of each compression/decompression test
-done through the web UI are stored in a database. Over time, this would then
-give some idea of aggregate performance of each implemented algorithm, grouped
-e.g. by file type.
+on average, 100 times faster than the initial brute-force implementation. LZW
+decompression has been cut down to 10~20% time of the initial haphazard version.
+In particular, LZW compression needs still to be improved.
 
 Generally, a somewhat disheartening observation is that most file types cannot
 be packed any further by wackpackr — quite the opposite, wackpackr actually
