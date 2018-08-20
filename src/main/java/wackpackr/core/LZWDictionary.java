@@ -12,6 +12,9 @@ public class LZWDictionary
     private static final int CODEWORD_BITSIZE = 16;
     private static final int MAX_DICTIONARY_SIZE = 1 << CODEWORD_BITSIZE;
 
+    private int bitSize;
+    private int dictMax;
+
     private int index;
     private ByteString[] dict;
     private Node[] trie;
@@ -19,6 +22,12 @@ public class LZWDictionary
     public LZWDictionary()
     {
         init();
+    }
+
+    public void resetIfFull()
+    {
+        if (index == MAX_DICTIONARY_SIZE)
+            init();
     }
 
     public ByteString get(int index)
@@ -29,27 +38,38 @@ public class LZWDictionary
     public int get(int prefix, byte value)
     {
         return (prefix < 0)
-                ? value + 128
+                ? value + 129
                 : trie[prefix].getIndex(value);
     }
 
-    public void put(ByteString bs)
+    public int put(ByteString bs)
     {
         dict[index++] = bs;
 
-        if (index == MAX_DICTIONARY_SIZE - 2)
-            init();
+        if (index > dictMax - 1)
+        {
+            bitSize++;
+            dictMax <<= 1;
+        }
+        resetIfFull();
+
+        return bitSize;
     }
 
-    public void put(int prefix, byte value)
+    public int put(int prefix, byte value)
     {
         Node node = new Node(index, value);
 
         trie[prefix].insert(node);
         trie[index++] = node;
 
-        if (index == MAX_DICTIONARY_SIZE - 2)
-            init();
+        if (index > dictMax)
+        {
+            bitSize++;
+            dictMax <<= 1;
+        }
+
+        return bitSize;
     }
 
 
@@ -61,13 +81,16 @@ public class LZWDictionary
         dict = new ByteString[MAX_DICTIONARY_SIZE];
         trie = new Node[MAX_DICTIONARY_SIZE];
 
-        for (index = 0; index < 256; index++)
+        for (index = 1; index < 257; index++)
         {
-            byte b = (byte) (index - 128);
+            byte b = (byte) (index - 129);
 
             dict[index] = new ByteString(b);
             trie[index] = new Node(index, b);
         }
+
+        bitSize = 9;
+        dictMax = 1 << bitSize;
     }
 
     private static final class Node

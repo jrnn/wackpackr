@@ -12,14 +12,12 @@ import wackpackr.util.ByteString;
  */
 public class LZWCompressor implements Compressor
 {
-    private static final int CODEWORD_BITSIZE = 16;
-    private static final int MAX_DICTIONARY_SIZE = 1 << CODEWORD_BITSIZE;
-
     @Override
     public byte[] compress(byte[] bytes) throws IOException
     {
         try (BinaryIO io = new BinaryIO())
         {
+            int bitsize = 9;
             io.write32Bits(Constants.LZW_TAG);
 
             LZWDictionary dict = new LZWDictionary();
@@ -33,15 +31,14 @@ public class LZWCompressor implements Compressor
                     index = newIndex;
                 else
                 {
-                    io.write16Bits(index);
-                    dict.put(index, b);
-                    index = b + 128;  // this should be = dict.get(-1, b) but we can cut corners
+                    write(io, bitsize, index);
+                    bitsize = dict.put(index, b);
+                    index = b + 129;  // this should be = dict.get(-1, b) but we can cut corners
                 }
+                dict.resetIfFull();
             }
-            io      // eof
-                    .write16Bits(index)
-                    .write16Bits(MAX_DICTIONARY_SIZE - 1)
-                    .writeByte((byte) 0);
+            write(io, bitsize, index);
+            io.write32Bits(0);      // EoF marker + padding
 
             return io.getBytesOut();
         }
@@ -52,34 +49,35 @@ public class LZWCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {
+            int bitsize = 9;
             if (io.read32Bits() != Constants.LZW_TAG)
                 throw new IllegalArgumentException("Not a LZW compressed file");
 
             LZWDictionary dict = new LZWDictionary();
             ByteString x, y;
 
-            int index = io.read16Bits();
-            int newIndex = io.read16Bits();
+            int index = read(io, bitsize);
+            int newIndex = read(io, bitsize);
             io.writeBytes(dict.get(index).getBytes());
 
-            while (newIndex != MAX_DICTIONARY_SIZE - 1)
+            while (newIndex != 0)
             {
                 x = dict.get(index).copy();
                 y = dict.get(newIndex);
 
                 if (y != null)
                 {
-                    dict.put(x.append(y.byteAt(0)));
+                    bitsize = dict.put(x.append(y.byteAt(0)));
                     io.writeBytes(y.getBytes());
                 }
                 else
                 {
-                    dict.put(x.append(x.byteAt(0)));
+                    bitsize = dict.put(x.append(x.byteAt(0)));
                     io.writeBytes(x.getBytes());
                 }
 
                 index = newIndex;
-                newIndex = io.read16Bits();
+                newIndex = read(io, bitsize);
             }
 
             return io.getBytesOut();
@@ -89,5 +87,27 @@ public class LZWCompressor implements Compressor
     @Override
     public String getName() {
         return "LZW";
+    }
+
+    private void write(BinaryIO io, int bitSize, int value) throws IOException
+    {
+        while (bitSize > 0)
+        {
+            bitSize--;
+            io.writeBit(((value >> bitSize) & 1) == 1);
+        }
+    }
+
+    private int read(BinaryIO io, int bitSize) throws IOException
+    {
+        int i = 0;
+
+        for (; bitSize > 0; bitSize--)
+        {
+            i <<= 1;
+            i |= (io.readBit() ? 1 : 0);
+        }
+
+        return i;
     }
 }
