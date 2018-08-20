@@ -43,3 +43,4 @@
 | 19.8. | 2 | 84 | speed up LZW decompression (now 5x faster on average) by using a simple array instead of a map ('duh...) |
 | 19.8. | 2 | 86 | isolate dictionary-related stuff from LZW compressor to its own class |
 | 19.8. | 2 | 88 | replacing java.util.TreeMap in LZW dictionary with some homebrewn shenanigans |
+| 20.8. | 1 | 89 | working still a bit on the LZW trie... |
