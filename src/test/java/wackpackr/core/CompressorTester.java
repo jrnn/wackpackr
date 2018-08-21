@@ -14,6 +14,13 @@ import wackpackr.util.ByteString;
  */
 public class CompressorTester
 {
+    private final String[] ss = {
+            "Appilan pappilan apupapin papupata pankolla kiehuu ja kuohuu. Appilan pappilan piski, paksuposki pisti apupapin papupadan poskeensa.",
+            "Never gonna give you up, never gonna let you down, never gonna run around and desert you. Never gonna make you cry, never gonna say goodbye, never gonna tell a lie and hurt you.",
+            "Now this is a story all about how my life got flipped turned upside down, and I'd like to take a minute, just sit right there, I'll tell you how I became the prince of a town called Bel-Air.",
+            "Good morning, Paul. What will your first sequence of the day be? Computer, load up Celery Man please. Yes, Paul. Could you kick up the 4D3D3D3? 4D3D3D3 engaged. Add sequence: OYSTER.",
+            "Father Pierre, why did you stay on in this colonial Campari-land, where the clink of glasses mingles with the murmur of a million mosquitoes, where waterfalls and whiskey wash away the worries of a world-weary whicker, where gin and tonics jingle in a gyroscopic jubilee of something beginning with J?"
+    };
     private final Compressor compressor;
 
     public CompressorTester(Compressor compressor)
@@ -24,56 +31,50 @@ public class CompressorTester
         this.compressor = compressor;
     }
 
-    public boolean compressesAsExpected(byte[] input, byte[] expected) throws IOException
+    public boolean compressesAsExpected(int i, byte[] input) throws IOException
     {
         return Arrays.equals(
-                expected,
-                compressor.compress(input)
+                input,
+                compressor.compress(ss[i].getBytes())
         );
     }
 
-    public boolean decompressesAsExpected(byte[] input, byte[] expected) throws IOException
+    public boolean decompressesAsExpected(int i, byte[] input) throws IOException
     {
         return Arrays.equals(
-                expected,
+                ss[i].getBytes(),
                 compressor.decompress(input)
         );
     }
 
     public boolean performsWithText() throws IOException
     {
-        System.out.println("TESTING WITH A TEXT FILE");
-
         File f = new File("src/test/java/wackpackr/test.txt");
         byte[] input = Files.readAllBytes(f.toPath());
 
-        return passesPerformanceTests(input);
+        return passesPerformanceTests(input, "text");
     }
 
     public boolean performsWithImage() throws IOException
     {
-        System.out.println("TESTING WITH AN IMAGE FILE");
-
         File f = new File("src/test/java/wackpackr/test.bmp");
         byte[] input = Files.readAllBytes(f.toPath());
 
-        return passesPerformanceTests(input);
+        return passesPerformanceTests(input, "image");
     }
 
     public boolean performsWithRandom() throws IOException
     {
-        System.out.println("TESTING WITH A PSEUDORANDOM BYTESTREAM");
-
         byte[] input = new byte[1024 * 1024];
         ThreadLocalRandom.current().nextBytes(input);
 
-        return passesPerformanceTests(input);
+        return passesPerformanceTests(input, "random");
     }
 
-    private boolean passesPerformanceTests(byte[] input) throws IOException
+    private boolean passesPerformanceTests(byte[] input, String type) throws IOException
     {
         ByteString bs = new ByteString(input);
-        System.out.println("filesize (bytes)\tcompression (ns)\tdecompression (ns)\trate\tintact?");
+//        System.out.println("class\ttype\tsize (bytes)\tcompression (ns)\tdecompression (ns)\trate (%)");
 
         for (int kb = 64; kb <= 1024; kb += 64)
         {
@@ -82,32 +83,25 @@ public class CompressorTester
             while (bs.size() <= size)
                 bs.append(input);
 
-            if (!testPerformance(bs.getBytes(0, size)))
+            if (!testPerformance(bs.getBytes(0, size), type))
                 return false;
         }
 
         return true;
     }
 
-    private boolean testPerformance(byte[] input) throws IOException
+    private boolean testPerformance(byte[] input, String type) throws IOException
     {
-        long start, end;
-        System.out.print(input.length + "\t");
+        System.out.print(compressor.getName() + "\t" + type + "\t" + input.length + "\t");
 
-        start = System.nanoTime();
+        long start = System.nanoTime();
         byte[] compressed = compressor.compress(input);
-        end = System.nanoTime();
-        System.out.print((end - start) + "\t");
+        System.out.print((System.nanoTime() - start) + "\t");
 
         start = System.nanoTime();
         byte[] decompressed = compressor.decompress(compressed);
-        end = System.nanoTime();
+        System.out.println((System.nanoTime() - start) + "\t" + (1.0 * compressed.length / input.length));
 
-        boolean success = Arrays.equals(input, decompressed);
-
-        System.out.print((end - start) + "\t");
-        System.out.println((1.0 * compressed.length / input.length) + "\t" + success);
-
-        return success;
+        return Arrays.equals(input, decompressed);
     }
 }

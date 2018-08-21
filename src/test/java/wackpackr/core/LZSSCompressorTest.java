@@ -10,13 +10,6 @@ public class LZSSCompressorTest
     private final Compressor lzss = new LZSSCompressor();
     private final CompressorTester tester = new CompressorTester(lzss);
 
-    private final String[] ss = {
-            "Appilan pappilan apupapin papupata pankolla kiehuu ja kuohuu. Appilan pappilan piski, paksuposki pisti apupapin papupadan poskeensa.",
-            "Never gonna give you up, never gonna let you down, never gonna run around and desert you. Never gonna make you cry, never gonna say goodbye, never gonna tell a lie and hurt you.",
-            "Now this is a story all about how my life got flipped turned upside down, and I'd like to take a minute, just sit right there, I'll tell you how I became the prince of a town called Bel-Air.",
-            "Good morning, Paul. What will your first sequence of the day be? Computer, load up Celery Man please. Yes, Paul. Could you kick up the 4D3D3D3? 4D3D3D3 engaged. Add sequence: OYSTER.",
-            "Father Pierre, why did you stay on in this colonial Campari-land, where the clink of glasses mingles with the murmur of a million mosquitoes, where waterfalls and whiskey wash away the worries of a world-weary whicker, where gin and tonics jingle in a gyroscopic jubilee of something beginning with J?"
-    };
     private final byte[][] bs = {
             { 7, 7, 32, 23, 32, -100, 14, 6, -109, 97, -124, -36, 32, 56, 24, 96, 18, -122, 19, -127, -42, 1, -128, 105, -128, -111, 64, 40, 14, -122, 24, 4, -127, -72, -42, 111, 54, 27, 12, 34, 3, 89, -92, -54, 104, 58, -99, 68, 6, -88, 5, 1, -44, -33, 0, -96, 23, 8, 32, 125, -57, 3, 73, -52, -42, 105, 22, 64, 64, 13, 103, 51, -87, -64, -33, 0, -64, -128, -112, -99, 13, 48, 86, -45, 36, 10, -58, 3, -32, 101, 50, -101, -114, 102, 17, 116, 0, 0 },
             { 7, 7, 32, 23, 39, 25, 78, -58, 83, -112, -128, -50, 111, 55, 27, -116, 34, 3, 57, -92, -20, 101, 16, 30, 77, -25, 81, 1, -44, -32, 44, 16, 27, -96, 51, 6, -61, 41, -46, 3, 4, 100, 55, -99, -51, -48, 26, -77, -111, -44, -36, 32, 48, -100, -115, -25, 83, 113, -112, 64, 97, -128, 32, 25, 12, -89, 51, 41, -54, 5, -124, 46, 16, 65, 106, 77, -90, 19, 92, 22, -116, -58, 114, 60, -63, 6, -50, 102, 19, -52, 2, -128, -34, 100, 49, 30, 76, -80, 25, -77, -95, -108, -40, 108, 16, 65, -20, 13, 38, 88, 45, 17, -96, -21, 5, -124, -128, 0, 0 },
@@ -29,22 +22,14 @@ public class LZSSCompressorTest
     public void compressionWorks() throws IOException
     {
         for (int i = 0; i < 5; i++)
-            Assert.assertTrue(
-                    tester.compressesAsExpected(
-                            ss[i].getBytes(),
-                            bs[i]
-                    ));
+            Assert.assertTrue(tester.compressesAsExpected(i, bs[i]));
     }
 
     @Test
     public void decompressionWorks() throws IOException
     {
         for (int i = 0; i < 5; i++)
-            Assert.assertTrue(
-                    tester.decompressesAsExpected(
-                            bs[i],
-                            ss[i].getBytes()
-                    ));
+            Assert.assertTrue(tester.decompressesAsExpected(i, bs[i]));
     }
 
     @Test
