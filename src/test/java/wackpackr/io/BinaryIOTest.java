@@ -42,6 +42,20 @@ public class BinaryIOTest
     }
 
     @Test
+    public void readsSeveralBitsCorrectly() throws Exception
+    {
+        for (int bits = 1; bits <= 24; bits++)
+            try (BinaryIO io = new BinaryIO(bytes))
+            {
+                for (int i = 0; i < binary.length() / bits; i++)
+                    Assert.assertEquals(
+                            io.readBits(bits),
+                            Integer.parseInt(binary.substring(i * bits, i * bits + bits), 2)
+                    );
+            }
+    }
+
+    @Test
     public void readsBytesCorrectlyAtAllOffsets() throws Exception
     {
         for (int offset = 0; offset <= 8; offset++)
@@ -58,21 +72,6 @@ public class BinaryIOTest
 
                 binary = binary.substring(1);
             }
-    }
-
-    @Test
-    public void safeReadReturnsNullIfInputStreamHasEnded() throws Exception
-    {
-        try (BinaryIO io = new BinaryIO(bytes))
-        {
-            int i = 0;
-
-            for (; i < bytes.length; i++)
-                Assert.assertTrue(io.readByteOrNull() == bytes[i]);
-
-            for (; i < bytes.length + 100; i++)
-                Assert.assertNull(io.readByteOrNull());
-        }
     }
 
     @Test
@@ -95,25 +94,6 @@ public class BinaryIOTest
                                 (byte) Integer.parseInt(binary.substring((i + k) * 8, (i + k) * 8 + 8), 2)
                         );
                 }
-
-                binary = binary.substring(1);
-            }
-    }
-
-    @Test
-    public void reads16BitChunksCorrectly() throws Exception
-    {
-        for (int offset = 0; offset <= 16; offset++)
-            try (BinaryIO io = new BinaryIO(bytes))
-            {
-                for (int i = 0; i < offset; i++)
-                    io.readBit();
-
-                for (int i = 0; i < binary.length() / 16; i++)
-                    Assert.assertEquals(
-                            io.read16Bits(),
-                            Long.parseLong(binary.substring(i * 16, i * 16 + 16), 2)
-                    );
 
                 binary = binary.substring(1);
             }
@@ -189,6 +169,27 @@ public class BinaryIOTest
     }
 
     @Test
+    public void writesSeveralBitsCorrectly() throws Exception
+    {
+        for (int bits = 1; bits <= 24; bits++)
+            try (BinaryIO io = new BinaryIO())
+            {
+                MockBitStream bs = new MockBitStream(binary);
+
+                while (bs.length() >= bits)
+                    io.writeBits((int) bs.nextBits(bits), bits);
+
+                while (bs.length() > 0)
+                    io.writeBit(bs.nextBit());
+
+                Assert.assertArrayEquals(
+                        bytes,
+                        io.getBytesOut()
+                );
+            }
+    }
+
+    @Test
     public void writesBytesCorrectlyAtAllOffsets() throws Exception
     {
         for (int offset = 0; offset <= 8; offset++)
@@ -244,30 +245,6 @@ public class BinaryIOTest
     }
 
     @Test
-    public void writes16BitChunksCorrectly() throws Exception
-    {
-        for (int offset = 0; offset <= 16; offset++)
-            try (BinaryIO io = new BinaryIO())
-            {
-                MockBitStream bs = new MockBitStream(binary);
-
-                for (int i = 0; i < offset; i++)
-                    io.writeBit(bs.nextBit());
-
-                while (bs.length() >= 16)
-                    io.write16Bits((int) bs.nextBits(16));
-
-                while (bs.length() > 0)
-                    io.writeBit(bs.nextBit());
-
-                Assert.assertArrayEquals(
-                        bytes,
-                        io.getBytesOut()
-                );
-            }
-    }
-
-    @Test
     public void writes32BitChunksCorrectly() throws Exception
     {
         for (int offset = 0; offset <= 32; offset++)
@@ -303,12 +280,28 @@ public class BinaryIOTest
                     .writeBytes(new byte[]{ -13, 42, 77 })
                     .writeBit(true)
                     .write32Bits(123456789)
-                    .writeBit(false);
+                    .writeBit(false)
+                    .writeBits(5461, 13);
 
             Assert.assertArrayEquals(
                     io.getBytesOut(),
-                    new byte[]{ -107, 60, -54, -109, 96, -21, 121, -94 }
+                    new byte[]{ -107, 60, -54, -109, 96, -21, 121, -94, -86, -86 }
             );
+        }
+    }
+
+    @Test
+    public void safeReadReturnsNullIfInputStreamHasEnded() throws Exception
+    {
+        try (BinaryIO io = new BinaryIO(bytes))
+        {
+            int i = 0;
+
+            for (; i < bytes.length; i++)
+                Assert.assertTrue(io.readByteOrNull() == bytes[i]);
+
+            for (; i < bytes.length + 100; i++)
+                Assert.assertNull(io.readByteOrNull());
         }
     }
 

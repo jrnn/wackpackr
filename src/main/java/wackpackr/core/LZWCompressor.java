@@ -31,14 +31,15 @@ public class LZWCompressor implements Compressor
                     index = newIndex;
                 else
                 {
-                    write(io, bitsize, index);
+                    io.writeBits(index, bitsize);
                     bitsize = dict.put(index, b);
                     index = b + 129;  // this should be = dict.get(-1, b) but we can cut corners
                 }
                 dict.resetIfFull();
             }
-            write(io, bitsize, index);
-            io.write32Bits(0);      // EoF marker + padding
+            io
+                    .writeBits(index, bitsize)
+                    .write32Bits(0);      // EoF marker + padding
 
             return io.getBytesOut();
         }
@@ -56,8 +57,8 @@ public class LZWCompressor implements Compressor
             LZWDictionary dict = new LZWDictionary();
             ByteString x, y;
 
-            int index = read(io, bitsize);
-            int newIndex = read(io, bitsize);
+            int index = io.readBits(bitsize);
+            int newIndex = io.readBits(bitsize);
             io.writeBytes(dict.get(index).getBytes());
 
             while (newIndex != 0)
@@ -77,7 +78,7 @@ public class LZWCompressor implements Compressor
                 }
 
                 index = newIndex;
-                newIndex = read(io, bitsize);
+                newIndex = io.readBits(bitsize);
             }
 
             return io.getBytesOut();
@@ -87,27 +88,5 @@ public class LZWCompressor implements Compressor
     @Override
     public String getName() {
         return "LZW";
-    }
-
-    private void write(BinaryIO io, int bitSize, int value) throws IOException
-    {
-        while (bitSize > 0)
-        {
-            bitSize--;
-            io.writeBit(((value >> bitSize) & 1) == 1);
-        }
-    }
-
-    private int read(BinaryIO io, int bitSize) throws IOException
-    {
-        int i = 0;
-
-        for (; bitSize > 0; bitSize--)
-        {
-            i <<= 1;
-            i |= (io.readBit() ? 1 : 0);
-        }
-
-        return i;
     }
 }

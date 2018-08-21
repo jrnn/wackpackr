@@ -6,9 +6,8 @@ import java.io.EOFException;
 import java.io.IOException;
 
 /**
- * Combined wrapper for I/O streams, that allows reading and writing one bit at a time, while also
- * offering the same methods for byte-size chunks, irrespective of the byte boundaries of the
- * underlying streams.
+ * Combined wrapper for I/O streams, that allows reading and writing an arbitrary number of bits at
+ * once, irrespective of the byte boundaries of the underlying streams.
  *
  * <p>Possible to use with or without an input stream.</p>
  *
@@ -106,7 +105,29 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Reads and returns requested number of bytes coming up next in the input stream.
+     * Reads and returns the requested number of bits next in the input stream, cast as an integer.
+     *
+     * @param bits number of bits to read
+     * @return requested bits as an integer
+     * @throws NullPointerException if no input stream has been set
+     * @throws IOException if there's an error reading the input stream
+     * @throws EOFException if the input stream is read through to the end during operation
+     */
+    public int readBits(int bits) throws IOException
+    {
+        int i = 0;
+
+        for (; bits % 8 != 0; bits--)
+            i = (i << 1) | (readBit() ? 1 : 0);
+
+        for (; bits > 0; bits -= 8)
+            i = (i << 8) | (readByte() & 0xFF);
+
+        return i;
+    }
+
+    /**
+     * Reads and returns the requested number of bytes next in the input stream.
      *
      * @param count number of bytes to read
      * @return requested number of bytes as array
@@ -122,24 +143,6 @@ public class BinaryIO implements AutoCloseable
             bs[i] = readByte();
 
         return bs;
-    }
-
-    /**
-     * Reads and returns the next 16-bit chunk in the input stream, cast as an integer.
-     *
-     * @return the next 16 bits in the input stream as integer
-     * @throws NullPointerException if no input stream has been set
-     * @throws IOException if there's an error reading the input stream
-     * @throws EOFException if there is less than 16 bits left in the input stream
-     */
-    public int read16Bits() throws IOException
-    {
-        int i = (readByte() & 0xFF);
-
-        i <<= 8;
-        i |= (readByte() & 0xFF);
-
-        return i;
     }
 
     /**
@@ -164,7 +167,7 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Writes one bit at the end of the output stream.
+     * Writes one bit to the end of the output stream.
      *
      * @param b bit to write as boolean
      * @return a reference to this object
@@ -187,7 +190,7 @@ public class BinaryIO implements AutoCloseable
 
     /**
      * Writes one byte to the end of the output stream, irrespective of where the write pointer is
-     * within current byte buffer.
+     * within the current byte buffer.
      *
      * @param b byte to write
      * @return a reference to this object
@@ -198,8 +201,39 @@ public class BinaryIO implements AutoCloseable
         if (offsetOut == 0)
             out.write(b);
         else
-            for (int i = 7; i >= 0; i--)
-                writeBit(((b >> i) & 1) == 1);
+        {
+            out.write(
+                    (bufferOut << (8 - offsetOut)) |
+                    ((b >> offsetOut) & (0xFF >> offsetOut))
+            );
+            bufferOut = b & ((1 << offsetOut) - 1);
+        }
+
+        return this;
+    }
+
+    /**
+     * Writes the given value to the end of the output stream using the specified number of bits.
+     * Note that this method does not check whether the value fits into the given bitsize — trying
+     * to write values with less bits than possible in practice corrupts the output stream.
+     *
+     * @param i value to write
+     * @param bits number of bits to allocate for the value
+     * @return a reference to this object
+     * @throws IOException if there's an error writing to the output stream
+     */
+    public BinaryIO writeBits(int i, int bits) throws IOException
+    {
+        while (bits % 8 != 0)
+        {
+            bits--;
+            writeBit(1 == ((i >> bits) & 1));
+        }
+        while (bits > 0)
+        {
+            bits -= 8;
+            writeByte((byte) ((i >> bits) & 0xFF));
+        }
 
         return this;
     }
@@ -207,7 +241,7 @@ public class BinaryIO implements AutoCloseable
     /**
      * Writes an arbitrary number of bytes to the end of the output stream.
      *
-     * @param bs bytes to write, as array
+     * @param bs bytes to write
      * @return a reference to this object
      * @throws IOException if there's an error writing to the output stream
      */
@@ -215,21 +249,6 @@ public class BinaryIO implements AutoCloseable
     {
         for (byte b : bs)
             writeByte(b);
-
-        return this;
-    }
-
-    /**
-     * Writes a 16-bit chunk to the end of the output stream.
-     *
-     * @param i 16 bits of data to write, as integer
-     * @return a reference to this object
-     * @throws IOException if there's an error writing to the output stream
-     */
-    public BinaryIO write16Bits(int i) throws IOException
-    {
-        writeByte((byte) (i >> 8));
-        writeByte((byte) (i & 0xFF));
 
         return this;
     }
@@ -256,7 +275,7 @@ public class BinaryIO implements AutoCloseable
     }
 
     /**
-     * Reads and returns current contents of the underlying output stream.
+     * Returns current contents of the underlying output stream.
      *
      * @return contents of the output stream, as byte array
      */
