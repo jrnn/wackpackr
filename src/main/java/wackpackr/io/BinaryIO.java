@@ -16,12 +16,10 @@ import java.io.IOException;
 public class BinaryIO implements AutoCloseable
 {
     private ByteArrayInputStream in = null;
-    private int bufferIn = -1;
-    private int offsetIn = 0;
+    private int bufferIn = -1, offsetIn = 0;
 
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    private int bufferOut = 0;
-    private int offsetOut = 0;
+    private int bufferOut = 0, offsetOut = 0;
 
     /**
      * Constructs a new BinaryIO instance for writing purposes only, without an input stream.
@@ -158,10 +156,7 @@ public class BinaryIO implements AutoCloseable
         long l = 0L;
 
         for (int k = 0; k < 4; k++)
-        {
-            l <<= 8;
-            l |= (readByte() & 0xFF);
-        }
+            l = (l << 8) | (readByte() & 0xFF);
 
         return l;
     }
@@ -181,8 +176,7 @@ public class BinaryIO implements AutoCloseable
         if (offsetOut == 8)
         {
             out.write(bufferOut);
-            offsetOut = 0;
-            bufferOut = 0;
+            bufferOut = offsetOut = 0;
         }
 
         return this;
@@ -214,7 +208,7 @@ public class BinaryIO implements AutoCloseable
 
     /**
      * Writes the given value to the end of the output stream using the specified number of bits.
-     * Note that this method does not check whether the value fits into the given bitsize — trying
+     * Note that this method does not check whether the value fits into the given bit size — trying
      * to write values with less bits than possible in practice corrupts the output stream.
      *
      * @param i value to write
@@ -256,21 +250,15 @@ public class BinaryIO implements AutoCloseable
     /**
      * Writes a 32-bit chunk to the end of the output stream.
      *
-     * @param l 32 bits of data to write, as long
+     * @param l 32 bits of data to write as long
      * @return a reference to this object
      * @throws IOException if there's an error writing to the output stream
      */
     public BinaryIO write32Bits(long l) throws IOException
     {
-        byte[] bs = new byte[4];
-
         for (int k = 3; k >= 0; k--)
-        {
-            bs[k] = (byte) (l & 0xFF);
-            l >>= 8;
-        }
+            writeByte((byte) (l >> (k * 8)));
 
-        writeBytes(bs);
         return this;
     }
 

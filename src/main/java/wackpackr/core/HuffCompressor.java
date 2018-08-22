@@ -29,8 +29,8 @@ public class HuffCompressor implements Compressor
      * with the pseudo-EoF marker and, finally, a few 0s for padding — just to ensure that the EoF
      * bit sequence is not partially cut off.</p>
      *
-     * @param bytes file to compress, as byte array
-     * @return compressed file, as byte array
+     * @param bytes file to compress as byte array
+     * @return compressed file as byte array
      * @throws IOException if there's an error writing to the output stream
      */
     @Override
@@ -70,8 +70,8 @@ public class HuffCompressor implements Compressor
      * is encountered. Throws {@code EOFException} if no such marker is seen before reaching the end
      * of the input stream.</p>
      *
-     * @param bytes file to decompress, as byte array
-     * @return decompressed file, as byte array
+     * @param bytes file to decompress as byte array
+     * @return decompressed file as byte array
      * @throws IllegalArgumentException if file does not have the correct identifier in its header
      * @throws EOFException if expected pseudo-EoF marker is not present in the input stream
      * @throws IOException if there's an error writing to or reading from the I/O streams
@@ -95,7 +95,8 @@ public class HuffCompressor implements Compressor
     }
 
     @Override
-    public String getName() {
+    public String getName()
+    {
         return "Huffman";
     }
 

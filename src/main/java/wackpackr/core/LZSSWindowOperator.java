@@ -42,7 +42,7 @@ public class LZSSWindowOperator
      * memorising pattern recurrences is initialised, and the initial lookahead buffer is pushed
      * into the window.
      *
-     * @param initialBuffer lookahead buffer at beginning of decoding
+     * @param initialBuffer lookahead buffer at beginning of encoding
      */
     public LZSSWindowOperator(byte[] initialBuffer)
     {

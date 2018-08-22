@@ -24,7 +24,7 @@ public class MinHeap<E>
 {
     private static final int MIN_CAPACITY = 8;
 
-    private Object[] heap  = new Object[MIN_CAPACITY];
+    private Object[] heap = new Object[MIN_CAPACITY];
     private int size = 0;
 
     /**
@@ -163,7 +163,7 @@ public class MinHeap<E>
         if (heap.length / 2 < MIN_CAPACITY)
             return;
 
-        Object[] newHeap = new Object[heap.length / 2];
+        Object[] newHeap = new Object[heap.length >> 1];
         System.arraycopy(heap, 0, newHeap, 0, size + 1);
 
         heap = newHeap;
@@ -171,7 +171,7 @@ public class MinHeap<E>
 
     private void expand()
     {
-        Object[] newHeap = new Object[heap.length * 2];
+        Object[] newHeap = new Object[heap.length << 1];
         System.arraycopy(heap, 0, newHeap, 0, size + 1);
 
         heap = newHeap;

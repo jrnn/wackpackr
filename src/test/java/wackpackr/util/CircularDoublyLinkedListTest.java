@@ -212,7 +212,7 @@ public class CircularDoublyLinkedListTest
     @Test
     public void toArrayWorksCorrectly()
     {
-        Object[] elemsAsObject = new Object[N];
+        Integer[] elemsAsObject = new Integer[N];
 
         for (int i = 0; i < N; i++)
         {
@@ -229,7 +229,7 @@ public class CircularDoublyLinkedListTest
     @Test
     public void toArrayReverseWorksCorrectly()
     {
-        Object[] elemsAsObject = new Object[N];
+        Integer[] elemsAsObject = new Integer[N];
 
         for (int i = 0; i < N; i++)
         {

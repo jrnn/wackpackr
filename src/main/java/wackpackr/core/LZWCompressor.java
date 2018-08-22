@@ -24,8 +24,8 @@ public class LZWCompressor implements Compressor
      * EoF marker (zero index), and a few 0s to ensure that the EoF bit sequence is not partially
      * cut off.</p>
      *
-     * @param bytes file to compress, as byte array
-     * @return compressed file, as byte array
+     * @param bytes file to compress as byte array
+     * @return compressed file as byte array
      * @throws IOException if there's an error writing to the output stream
      */
     @Override
@@ -71,8 +71,8 @@ public class LZWCompressor implements Compressor
      * encountered. Throws {@code EOFException} if no such marker is seen before reaching the end of
      * the input stream.</p>
      *
-     * @param bytes file to decompress, as byte array
-     * @return decompressed file, as byte array
+     * @param bytes file to decompress as byte array
+     * @return decompressed file as byte array
      * @throws IllegalArgumentException if file does not have the correct identifier in its header
      * @throws EOFException if no pseudo-EoF marker is present in the input stream
      * @throws IOException if there's an error writing to or reading from the I/O streams
