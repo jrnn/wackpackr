@@ -46,3 +46,4 @@
 | 20.8. | 1 | 89 | working still a bit on the LZW trie... |
 | 20.8. | 4 | 93 | trying to make LZW work with variable-width codes |
 | 21.8. | 2 | 95 | finetuning I/O operations (expected speed improvement, but none observed...) |
+| 22.8. | 2 | 97 | restructuring and commenting LZW code |
