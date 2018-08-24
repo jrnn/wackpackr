@@ -17,24 +17,24 @@ package wackpackr.util;
  * left} and {@code right}) lead to nodes with the exact same prefix as the current node, but a
  * different byte value at the last position; the lateral pointer ({@code next}), in turn, leads to
  * the "first" node that takes as its prefix the byte sequence represented by the current node. The
- * idea, then, is that the child pointers are followed until the byte value to append next is found;
- * and then the lateral pointer is followed to move on to the next position in the sequence.</p>
+ * idea is that the child pointers are followed until the byte value to append next is found; and
+ * then the lateral pointer is followed to move on to the next position in the sequence.</p>
  *
  * <p>For example: to check if sequence [ 1, 2, 3, 4 ] exists in the trie, starting from the root,
  * first follow the {@code left} and {@code right} pointers, until reaching a node with value 1;
- * then from there follow the {@code next} pointer to a "parallel" node and, again, follow the
- * {@code left} and {@code right} pointers, until reaching a node with value 2; and so on.</p>
+ * then from there follow the {@code next} pointer to a parallel node and, again, follow the {@code
+ * left} and {@code right} pointers, until reaching a node with value 2; and so on.</p>
  *
- * <p>The child pointers are arranged as a non-balanced binary trie. This means that, at worst,
- * checking for the existence of a byte value in a certain position requires a full 256 operations.
- * However, in practice byte values are added to the (sub)trie randomly, which often results in a
- * surprisingly balanced structure. Hence, the search typically takes only logarithmic time.</p>
+ * <p>The child pointers are arranged as a non-balanced binary trie. So, at worst, checking for the
+ * existence of a byte value in a certain position requires 256 operations. However, in practice
+ * byte values are added to the (sub)trie randomly, which often results in a surprisingly balanced
+ * structure. Hence, the search typically takes only logarithmic time.</p>
  *
- * <p>The lateral pointers simply chain nodes in a linear fashion, meaning that tracing a long
- * sequence can be very time-consuming. However, there's a trick when operating the dictionary that
- * avoids ever having to look further than one {@code next} pointer, so optimising this would make
- * no difference. Also, for the same reason, currently this class offers only methods where the
- * prefix is known, and searching/inserting is limited to the immediate next byte.</p>
+ * <p>The lateral pointers simply chain nodes in a linear fashion, so tracing a long sequence can
+ * be very time-consuming. However, there's a trick when operating the dictionary that avoids ever
+ * having to look further than one {@code next} pointer, so optimising would make no difference.
+ * Also, for the same reason, currently this class offers only methods where the prefix is known,
+ * and searching/inserting is limited to the immediate next byte.</p>
  *
  * @author Juho Juurinen
  */
@@ -59,33 +59,64 @@ public class LZWNode
 
     /**
      * Searches for a node whose byte sequence is the byte sequence associated with this node
-     * <b>plus</b> the given byte value appended to the end; returns the dictionary index of that
-     * node, if it exists, or -1 otherwise.
+     * <b>plus</b> the given bytes appended to the end; returns that node if it exists, or {@code
+     * null} otherwise.
      *
-     * @param value byte to append to the sequence represented by this node
-     * @return dictionary index of the sought-after byte sequence, if it exists, or -1
+     * @param bytes bytes to append to the sequence represented by this node
+     * @return sought-after node, if it exists
      */
-    public int getIndex(byte value)
+    public LZWNode get(byte... bytes)
     {
-        LZWNode node = search(value, next);
+        int n = bytes.length;
 
-        return (node == null)
-                ? -1
-                : node.index;
+        switch (n)
+        {
+            case 0:
+                return null;
+            case 1:
+                return search(bytes[0], next);
+            default:
+                LZWNode node = search(bytes[0], next);
+                if (node == null)
+                    return null;
+
+                byte[] bytes_ = new byte[n - 1];
+                System.arraycopy(bytes, 1, bytes_, 0, n - 1);
+
+                return node.get(bytes_);
+        }
     }
 
     /**
-     * Inserts the given node to the trie, such that the new node represents the exact same byte
-     * sequence as this node, apart from appending one byte to the end.
+     * Inserts the given node to the trie, such that the new node represents the byte sequence that
+     * equals to the sequence represented by this node appended with the given bytes.
+     *
+     * <p>Returns {@code true} if insertion was successful. Insertion fails if any of the prefixes
+     * of the given sequence do not exist, or if the given sequence already exists in the trie.</p>
      *
      * @param node node to insert
+     * @param bytes
+     * @return
      */
-    public void insert(LZWNode node)
+    public boolean insert(LZWNode node, byte... bytes)
     {
-        if (next == null)
-            next = node;
-        else
-            insert(node, next);
+        if (bytes.length == 0)
+            return insert(node);
+
+        LZWNode parent = get(bytes);
+        return (parent == null)
+                ? false
+                : parent.insert(node);
+    }
+
+    /**
+     * Returns the dictionary index stored in this node.
+     *
+     * @return dictionary index of this node
+     */
+    public int index()
+    {
+        return index;
     }
 
 
@@ -107,17 +138,31 @@ public class LZWNode
         return search(value, root);
     }
 
-    private void insert(LZWNode node, LZWNode root)
+    private boolean insert(LZWNode node)
     {
+        if (next != null)
+            return insert(node, next);
+
+        next = node;
+        return true;
+    }
+
+    private boolean insert(LZWNode node, LZWNode root)
+    {
+        if (node.value == root.value)
+            return false;
+
         if (node.value < root.value)
             if (root.left == null)
                 root.left = node;
             else
-                insert(node, root.left);
+                return insert(node, root.left);
         else
             if (root.right == null)
                 root.right = node;
             else
-                insert(node, root.right);
+                return insert(node, root.right);
+
+        return true;
     }
 }

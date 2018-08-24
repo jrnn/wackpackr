@@ -108,9 +108,13 @@ public class LZWDictionary
      */
     public int get(int prefix, byte value)
     {
-        return (prefix < 0)
-                ? value + 129
-                : trie[prefix].getIndex(value);
+        if (prefix < 0)
+            return value + 129;
+
+        LZWNode node = trie[prefix].get(value);
+        return (node == null)
+                ? -1
+                : node.index();
     }
 
     /**
