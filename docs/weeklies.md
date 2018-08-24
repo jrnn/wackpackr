@@ -20,7 +20,7 @@
 
 #### Main activities
 
-- Extending and restructuring Huffman code, should be more or less done now(?)
+- Extending and restructuring Huffman code, should be more or less done now
 - Writing a wrapper for I/O streams that can read and write one bit at a time
 - Replacing java.util.PriorityQueue with own heap implementation
 - Writing unit tests for classes that I'm fairly happy with and expect not to
@@ -101,3 +101,23 @@
     classes, and I don't think testing them in isolation adds much value.
 - P.S. Got rid of `Arrays.copy(...)` by using `System.arraycopy(...)` instead
   :-D that's one import down
+
+## Week #5
+
+#### Main activities
+
+- Improving LZW speed with a custom binary trie and "prefix indexing" trick
+- Improving LZW compression rate with variable bit size encoding
+- *Trying* to improve overall performance by being smarter about how the I/O
+  class writes offset bytes, but disappointingly no improvement was observed
+
+#### Next in line
+
+- I'd like to think that core functionality and DYI data structures are done
+  now? So, just wrapping up loose ends
+- In particular, performance testing and analysis of the results
+
+#### Issues and questions
+
+- None at this time... I'd appreciate suggestions on what to focus on foremost
+  with the remaining time? (Is something important missing or lacking?)
