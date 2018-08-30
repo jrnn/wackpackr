@@ -26,15 +26,13 @@ package wackpackr.util;
  * left} and {@code right} pointers, until reaching a node with value 2; and so on.</p>
  *
  * <p>The child pointers are arranged as a non-balanced binary trie. So, at worst, checking for the
- * existence of a byte value in a certain position requires 256 operations. However, in practice
+ * existence of a byte value in a certain position requires checking 256 nodes. However, in practice
  * byte values are added to the (sub)trie randomly, which often results in a surprisingly balanced
- * structure. Hence, the search typically takes only logarithmic time.</p>
+ * structure. Hence, typically no more than ~8 nodes need to be checked.</p>
  *
  * <p>The lateral pointers simply chain nodes in a linear fashion, so tracing a long sequence can
  * be very time-consuming. However, there's a trick when operating the dictionary that avoids ever
  * having to look further than one {@code next} pointer, so optimising would make no difference.
- * Also, for the same reason, currently this class offers only methods where the prefix is known,
- * and searching/inserting is limited to the immediate next byte.</p>
  *
  * @author Juho Juurinen
  */
@@ -95,8 +93,9 @@ public class LZWNode
      * of the given sequence do not exist, or if the given sequence already exists in the trie.</p>
      *
      * @param node node to insert
-     * @param bytes
-     * @return
+     * @param bytes bytes to append to the sequence represented by this node
+     * @return true if insertion is successful; more specifically, if the byte sequence to insert
+     *         does not yet exist in the trie, but all its prefixes do
      */
     public boolean insert(LZWNode node, byte... bytes)
     {
