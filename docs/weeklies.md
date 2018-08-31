@@ -121,3 +121,9 @@
 
 - None at this time... I'd appreciate suggestions on what to focus on foremost
   with the remaining time? (Is something important missing or lacking?)
+
+## Week #6
+
+This week was real busy at work, couldn't find the time to do anything. With the
+remaining time, will try to (1) do performance testing, (2) update documentation,
+(3) patch unit tests.
