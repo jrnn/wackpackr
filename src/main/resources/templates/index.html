@@ -31,30 +31,32 @@
           </h3>
           <p>
             <strong>wackpackr</strong> accepts any kind of file, and will try compressing it with
-            naive implementations of (1) <strong>Huffman</strong> and (2) <strong>LZSS</strong>
-            algorithms.
+            naive implementations of (1) <strong>Huffman</strong>, (2) <strong>LZSS</strong>, and
+            (3) <strong>LZW</strong> algorithms.
           </p>
           <p>
             Immediately after this, <strong>wackpackr</strong> decompresses the compressed binary,
             just to verify whether it can be returned back to its exact initial form.
           </p>
           <p>
-            The results are shown below for each algorithm.
+            The results are shown below for each algorithm. Note that <strong>wackpackr</strong>
+            also tries its luck by running two algorithms in sequence, although this probably never
+            yields better results than any of the algorithms individually.
           </p>
           <p>
-            Note that most files not only cannot be packed smaller, but on the contrary will take up
-            even <em>MORE</em> space after compression. This is because many file types are
-            compressed as-is with sophisticated techniques, so trying to squeeze them any further
-            with a crappy application such as <strong>wackpackr</strong> is bound to backfire
-            miserably.
+            Most files not only cannot be packed smaller, but on the contrary will take up even
+            <em>MORE</em> space after compression. This is because many file types are compressed
+            as-is with sophisticated techniques, so trying to squeeze them any further with a crappy
+            application such as <strong>wackpackr</strong> is bound to backfire miserably.
           </p>
           <p>
             If you want to see nice compression rates, text files usually do the trick. Long,
-            uncompressed text with a lot of recurring patterns can at best be packed to 20% of its
-            original size.
+            uncompressed text with a lot of recurring patterns can usually be packed to 40~60% of
+            the original size.
           </p>
           <p>
-            Note also that file size is capped currently at <strong>1,024 kB</strong>.
+            Note also that file size is capped currently at <strong>1,024 kB</strong>. Trying to run
+            this with a larger file will result in an ugly error page.
           </p>
         </div>
       </div>
@@ -116,19 +118,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Huffman</td>
-                <td th:text = "${huffCompress}"></td>
-                <td th:text = "${huffRate}"></td>
-                <td th:text = "${huffDecompress}"></td>
-                <td th:text = "${huffIntact}"></td>
-              </tr>
-              <tr>
-                <td>LZSS</td>
-                <td th:text = "${lzssCompress}"></td>
-                <td th:text = "${lzssRate}"></td>
-                <td th:text = "${lzssDecompress}"></td>
-                <td th:text = "${lzssIntact}"></td>
+              <tr th:each = "r : ${results}">
+                <td th:text = "${r.name}"></td>
+                <td th:text = "${r.compressionTime}"></td>
+                <td th:text = "${#numbers.formatDecimal(r.compressionRate, 1, 2)}"></td>
+                <td th:text = "${r.decompressionTime}"></td>
+                <td th:text = "${r.intact} ? 'Yes' : 'No'"></td>
               </tr>
             </tbody>
           </table>

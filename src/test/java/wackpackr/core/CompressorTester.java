@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import wackpackr.util.ByteString;
+import wackpackr.web.CompressionResult;
 
 /**
  * This class contains a few reusable procedures for testing {@link Compressor} implementations.
@@ -74,7 +75,6 @@ public class CompressorTester
     private boolean passesPerformanceTests(byte[] input, String type) throws IOException
     {
         ByteString bs = new ByteString(input);
-//        System.out.println("class\ttype\tsize (bytes)\tcompression (ns)\tdecompression (ns)\trate (%)");
 
         for (int kb = 64; kb <= 1024; kb += 64)
         {
@@ -83,25 +83,17 @@ public class CompressorTester
             while (bs.size() <= size)
                 bs.append(input);
 
-            if (!testPerformance(bs.getBytes(0, size), type))
+            CompressionResult res = new CompressionResult(
+                    bs.getBytes(0, size),
+                    type,
+                    compressor
+            );
+//            System.out.println(res);
+
+            if (!res.isIntact())
                 return false;
         }
 
         return true;
-    }
-
-    private boolean testPerformance(byte[] input, String type) throws IOException
-    {
-        System.out.print(compressor.getName() + "\t" + type + "\t" + input.length + "\t");
-
-        long start = System.nanoTime();
-        byte[] compressed = compressor.compress(input);
-        System.out.print((System.nanoTime() - start) + "\t");
-
-        start = System.nanoTime();
-        byte[] decompressed = compressor.decompress(compressed);
-        System.out.println((System.nanoTime() - start) + "\t" + (1.0 * compressed.length / input.length));
-
-        return Arrays.equals(input, decompressed);
     }
 }

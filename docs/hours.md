@@ -49,3 +49,5 @@
 | 22.8. | 2 | 97 | restructuring and commenting LZW code |
 | 23.8. | 1 | 98 | still further work on LZW trie |
 | 30.8. | 3 | 101 | LZW trie unit testing |
+| 1.9. | 2 | 103 | sharpening documentation |
+| 1.9. | 1 | 104 | bringing UI up to speed |

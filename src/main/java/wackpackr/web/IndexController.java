@@ -1,84 +1,36 @@
 package wackpackr.web;
 
-import java.util.Arrays;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import wackpackr.core.Compressor;
-import wackpackr.core.HuffCompressor;
-import wackpackr.core.LZSSCompressor;
 
 @Controller
 public class IndexController
 {
-    private static String HUFF_COMPRESS = "n/a";
-    private static String HUFF_RATE = "n/a";
-    private static String HUFF_DECOMPRESS = "n/a";
-    private static String HUFF_INTACT = "n/a";
-    private static String LZSS_COMPRESS = "n/a";
-    private static String LZSS_RATE = "n/a";
-    private static String LZSS_DECOMPRESS = "n/a";
-    private static String LZSS_INTACT = "n/a";
+    @Autowired
+    private CompressionService compressionService;
 
     @RequestMapping(value = "*", method = RequestMethod.GET)
     public String index(Model model)
     {
-        model.addAttribute("huffCompress", HUFF_COMPRESS);
-        model.addAttribute("huffRate", HUFF_RATE);
-        model.addAttribute("huffDecompress", HUFF_DECOMPRESS);
-        model.addAttribute("huffIntact", HUFF_INTACT);
-        model.addAttribute("lzssCompress", LZSS_COMPRESS);
-        model.addAttribute("lzssRate", LZSS_RATE);
-        model.addAttribute("lzssDecompress", LZSS_DECOMPRESS);
-        model.addAttribute("lzssIntact", LZSS_INTACT);
+        model.addAttribute("results", compressionService.getResults());
 
         return "index";
     }
 
     @RequestMapping(value = "/compress", method = RequestMethod.POST)
-    public String upload(@RequestParam("file") MultipartFile file)
+    public String compress(@RequestParam("file") MultipartFile file)
     {
-        if (file == null || file.getSize() == 0)
-            return "redirect:/";
-
-        long start, end;
-        byte[] compressed, decompressed, initial;
-        Compressor huff = new HuffCompressor();
-        Compressor lzss = new LZSSCompressor();
-
-        try
-        {
-            initial = file.getBytes();
-
-            start = System.nanoTime();
-            compressed = huff.compress(initial);
-            end = System.nanoTime();
-            HUFF_COMPRESS = String.format("%,d", (end - start) / 1000000);
-            HUFF_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
-            start = System.nanoTime();
-            decompressed = huff.decompress(compressed);
-            end = System.nanoTime();
-            HUFF_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
-            HUFF_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";
-
-            start = System.nanoTime();
-            compressed = lzss.compress(initial);
-            end = System.nanoTime();
-            LZSS_COMPRESS = String.format("%,d", (end - start) / 1000000);
-            LZSS_RATE = String.format("%.2f", (100.0 * compressed.length / initial.length));
-            start = System.nanoTime();
-            decompressed = lzss.decompress(compressed);
-            end = System.nanoTime();
-            LZSS_DECOMPRESS = String.format("%,d", (end - start) / 1000000);
-            LZSS_INTACT = (Arrays.equals(initial, decompressed)) ? "YES" : "NO";
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        if (file != null && file.getSize() > 0)
+            try
+            {
+                compressionService.runTests(file.getBytes());
+            }
+            catch (Exception e) {}
 
         return "redirect:/";
     }
