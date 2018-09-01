@@ -1,4 +1,5 @@
-## Implementation notes
+Implementation notes
+--------------------
 
 ### Code organization
 
@@ -14,26 +15,24 @@ e.g. in performance testing. Part of the (de)compression logic is decoupled into
 helper classes, for no other reason than trying to keep things "neat".
 
 [wackpackr.io](https://github.com/jrnn/wackpackr/tree/master/src/main/java/wackpackr/io)
-currently only contains a kind of wrapper class that encapsulates ByteArrayI/O
-from standard Java library. This class offers methods for all I/O needs of the
+only contains a kind of wrapper class that encapsulates ByteArrayI/O from
+standard Java library. This class offers methods for all I/O needs of the
 compressors, most importantly the ability to read and write individual bits (the
-standard I/O tools do not operate below byte level). Since ByteArrayI/O are not
-complicated, they could be replaced with own implementations at some point, if
-only to completely eliminate reliance on standard library.
+standard I/O tools do not operate below byte level).
 
 [wackpackr.util](https://github.com/jrnn/wackpackr/tree/master/src/main/java/wackpackr/util)
-is an inconspicuous but invaluable package, containing all the data structures
-and other utilities that the compressors rely on. These classes often provide
-functionality only to the extent required by the compressors, and may at times
-be so tailored for the occasion, that they are practically unserviceable in a
-more general context.
+contains all the data structures and other utilities that the compressors rely
+on. These classes often provide functionality only to the extent required by the
+compressors, and for this reason might be practically unserviceable in a more
+general context.
 
 [wackpackr.web](https://github.com/jrnn/wackpackr/tree/master/src/main/java/wackpackr/web)
 is there only to provide a web-based UI — utterly irrelevant.
 
 ### A few words on the compressors
 
-**Huffman**
+##### Huffman [REWRITE]
+
 - By-the-book implementation, that roughly does the following things when
   compressing:
   - Reads the inbound file and counts number of occurences (frequencies) of each
@@ -59,44 +58,141 @@ is there only to provide a web-based UI — utterly irrelevant.
   say the logarithmic part is trivial, and that the operations can be expected
   to run in linear time with respect to file size.
 
-**LZSS**
-- Somewhat haphazard implementation, that roughly does the following things when
-  compressing:
-  - Runs the inbound file through a "sliding window" that consists of a short
-    16-byte lookahead buffer, and a longer 4096-byte prefix buffer: whenever the
-    window "slides" forward, next bytes in the file flow into the lookahead part,
-    at the same time displacing oldest bytes at the end of the prefix part.
-  - On each step, searches backwards through the prefix for the longest match of
-    the byte sequence currently in lookahead buffer.
-  - If a match is found, writes to output an offset-length pair that states
-    "the next 'length' bytes are the exact same ones as starting 'offset' bytes
-    backward from here"; if no match is found, then writes to output the first
-    byte in lookahead as-is.
-  - So, in essence, the idea is to encode recurring patterns in the file as
-    (shorter) references to previous occurrences.
-  - Two bytes are reserved for these pointers, 12 bits for offset and 4 bits for
-    length — hence the prefix and lookahead buffer sizes of 4096 vs. 16.
-- And when decompressing:
-  - Simply, reads through the compressed binary, and just decodes the pointers
-    as they come (copying back-references from the already-decompressed tail
-    part).
-- Either way, the file is read through only once. The only potentially heavy
-  part is the pattern search when compressing. A brute-force approach where the
-  whole prefix buffer is searched on each step results in `O(n^2)` time, which
-  is out of the question. More clever strategies are needed to minimize the
-  search work.
-- This implementation tries to follow a technique set out in Deflate, where the
-  positions of three-byte sequences are memorized (as they enter the prefix
-  buffer), so that the search can always be limited only to positions where at
-  least the initial three bytes match. Statistically, this reduces the number of
-  pattern matching attempts significantly: assuming an even distribution of byte
-  values, there should be on average _only one_ search attempt per step.
-- All in all, this means that also LZSS can be expected to run in linear time.
+[INTRODUCE AND LINK THE RELEVANT CLASSES HERE?]
 
-**LZW**
-- (WORK IN PROGRESS)
+##### LZSS (Lempel–Ziv–Storer–Szymanski)
+
+LZSS achieves compression by replacing recurring patterns in the data with back-
+references to an earlier occurrence. A back-reference simply is a pair of
+numbers: *offset* and *length*. Offset tells how many bytes to backtrack in the
+data, and length tells how many bytes to read from that position. In other
+words, a back-reference states that "the next *length* bytes are the same ones
+as seen *offset* bytes backward."
+
+In this implementation, two bytes are reserved for a back-reference: 12 bits for
+offset, and 4 bits for length. This means that the maximum distance to backtrack
+is 4095 bytes, and the maximum length for a recurring pattern is 15 bytes. Also,
+since a back-reference takes up two bytes, only patterns longer than (or equal
+to) three bytes are referenced. This further means that *length* always implies
+a "plus three", bumping maximum length up to 18 bytes.
+
+To tell the difference between back-references and literal data, a one-bit flag
+is used: *literal blocks* (one byte) are preceded by a 0, and *pointer blocks*
+(two-byte back-reference) are preceded by a 1. This chips away a bit at the
+compression rate — in fact, if there's little to no recurrence in the data, the
+encoded form can be bigger than the original. But even so, in most cases the
+trade-off is justifiable.
+
+Because there's a limit how far back you can go, and how long patterns you can
+repeat, LZSS does not need to look at an entire file at once; instead, it only
+needs to look at a buffer of definite size, that "slides" through the file as
+the algorithm runs. In this implementation, the buffer size is 4095 + 18 = 4113
+bytes. At each step, the aim is to find the longest (partial or complete) match
+of the 18 "lookahead" bytes in the buffer, and if a match of at least the first
+three bytes is found, a back-reference is written instead of the literal bytes.
+
+So, with the basics in place, compression roughly goes as follows:
+- Run the inbound file through a "sliding window" of fixed length. As the window
+  slides forward, next bytes in the file flow in from one end, and "oldest"
+  bytes drop out from the other end.
+- At each step, scan the window for the best match of the 18-byte "lookahead"
+  sequence.
+- If a match is found, write a pointer block (i.e. back-reference); if not,
+  write a literal block.
+- Slide the window forward by `X` bytes, where `X` is the length of the best
+  match found in the above step.
+- Rinse and repeat, until reaching end of file.
+
+...and decompression:
+- Similar to compression, run the encoded file through the "sliding window."
+- When encountering pointer blocks, copy data from the already-decoded tail part
+  as instructed by the back-reference.
+- When encountering literal blocks, just write the literal byte as-is.
+- Rinse and repeat, until reaching end of file.
+
+Clearly, both in compression and decompression, the input file is read through
+exactly once, and encoded/decoded on the go. This only involves simple, basic
+operations (reading and writing bits and bytes). Hence, it would be nice to say
+that both run in linear time with respect to file size. However, there is one
+key difference between the two — the longest pattern match in compression. This
+is the potential bottleneck. A brute-force approach where the whole buffer is
+scanned results in massive waste, something on the order of `O(n²)` time. More
+clever strategies are needed to minimize the search work.
+
+This implementation tries to mimic the technique used in DEFLATE: the positions
+of three-byte sequences within the sliding window are memorized in a hash table
+(byte triple as key, position as value), so that the search can be limited only
+to positions where at least the initial three bytes match. Statistically, this
+reduces the number of matching attempts significantly. Assuming an even
+distribution of byte values, there should on average be *only one* search
+attempt per step. Therefore, this implementation of LZSS should be able to
+handle both compression and decompression in `~O(n)` time.
+
+[INTRODUCE AND LINK THE RELEVANT CLASSES HERE?]
+
+##### LZW (Lempel–Ziv–Welch)
+
+The basic idea is the same as LZSS: recurring byte sequences are replaced with
+shorthands. However, whereas LZSS uses back-references to preceding data, LZW
+maintains a separate dictionary of encountered sequences and uses dictionary
+indexes as the reference.
+
+Basically, as LZW reads through the file byte by byte, every time it encounters
+a "substring" it has not seen yet, it stores that substring in the dictionary
+under the next free index; and if that substring is encountered again, it writes
+to output just the corresponding index.
+
+The ingenious thing is that no metadata about the dictionary needs to be saved
+for decompression purposes. In both cases, the dictionary is constructed "on the
+fly" with the same logic of stepwise substring concatenation. The only
+prerequisite is that both compression and decompression start with the same
+initial dictionary — typically, placing all possible one-byte sequences in the
+first 256 indexes. This implementation is otherwise standard, but reserves the
+zero-index for the pseudo-EoF marker.
+
+To avoid LZW running crazy with memory, dictionary size needs to have an upper
+bound. Whenever the cap is reached, the dictionary is flushed to its initial
+state. In this implementation, the cap is set at 65,535 (that is, an index
+reference can at most take up 16 bits). So, all in all, index 0 = pseudo-EoF,
+indexes 1—256 = basic one-byte values, and indexes 257—65,535 = byte sequences
+of length 2 or more.
+
+It should be clear from the above that a LZW compressed file, in practice, is
+an uninterrupted chain of dictionary indexes. Therefore, unlike LZSS, LZW does
+not need to "waste" bits to distinguish between this or that kind of block.
+
+The logic of compression vs. decompression is not described here step by step:
+it is sufficient to note that, in both cases, the file is read through exactly
+once, while maintaining a dictionary on the side. At each step, the dictionary
+is searched once, and a maximum of one new entry is put into it. So, we can see
+that overall time complexity is determined by the search/insertion operations —
+if these can be done in `O(1)` time, then LZW runs in linear time with respect
+to file size.
+
+How to ensure that the dictionary works in constant time? When decompressing,
+this is easy. The decoder just needs to look up byte sequences by index, so an
+ordinary array is all that's needed. Compression is trickier. The encoder needs
+to look up indexes by byte sequence. This of course could be solved with a hash
+table that, given the limited dictionary size, would not even need all that many
+buckets to maintain a sensible load factor. However, this implementation takes a
+different approach, relying on a prefix tree that takes full advantage of the
+indexing properties and only reserves so much memory as needed, yet still can
+handle the search and insertion in what amounts to constant time. (The exact
+mechanics are elaborated in the relevant classes.)
+
+Furthermore, for compression efficiency, this implementation uses variable bit
+sizes: only so many bits are reserved as necessary when writing an index. This
+is dictated by the running dictionary size. For instance, if the dictionary has
+666 entries, then we know that no more than 10 bits are needed to express any
+index at that point. When index 1,024 is reached, the bit size is bumped up to 11.
+This little optimisation does not compromise time complexity in any way.
+
+[INTRODUCE AND LINK THE RELEVANT CLASSES HERE?]
 
 ### What could be done better?
 
-- Everything can always be done better. There are probably dozens and dozens of
-  bigger and smaller optimizations that could be pursued.
+- BinaryIO : I have a hunch this might be or become a bottleneck. Tried to
+  optimise it a couple times, but no performance improvement observed.
+- LZSS : can the longest pattern search be improved still?
+- LZW : monitoring compression efficiency and "flushing" explicitly if it drops
+  below certain threshold
