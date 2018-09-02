@@ -1,6 +1,7 @@
-## Testing documentation
+Testing documentation
+---------------------
 
-### Test coverage
+## Test coverage
 
 See [coveralls](https://coveralls.io/github/jrnn/wackpackr?branch=master) for
 latest coverage reports.
@@ -15,45 +16,72 @@ These tests, however, only check that the data decompresses to its initial form,
 and there are no requirements on performance for a test to pass.
 
 Compressor helper classes are not tested at all individually, only indirectly as
-part of the compressor testing. This probably is not an issue? If they weren't
-working as supposed, surely the compression tests would fail?
+part of the compressor tests. For sake of completeness, these classes should be
+unit tested as well.
 
 There is and will be no automatic testing for anything web/UI related, as these
-are just nice-to-have features for convenience.
+are just nice-to-have features for convenience. This unfortunately means that
+100% coverage will not be reached. Boo-hoo.
 
-### Performance testing
+## Performance testing, round #1
 
-As briefly mentioned above, each compressor class is tested for performance as
-part of the overall test suite — but no thresholds have yet been set in terms of
-speed and compression rate. The tests pass as long as nothing is "lost in
-translation".
+Each of the three compressors was, in turn, tested with three kinds of data:
+(1) text, (2) image, and (3) random. For text, I used [my old M.A. thesis](https://github.com/jrnn/wackpackr/blob/master/src/test/java/wackpackr/test.txt)
+which constitutes ~100 pages of fairly varied, academic English, in raw *.txt
+format; for image, I used [a photo of a sunset over a lake](https://github.com/jrnn/wackpackr/blob/master/src/test/java/wackpackr/test.bmp)
+in raw *.bmp format; and for random, just a pseudorandom stream of bytes
+generated with java.lang.ThreadLocalRandom.
 
-Each time running the tests produces a small dataset on performance with
-different kinds of input and filesizes. I haven't yet looked at the data in
-depth, but a quick-and-dirty analysis suggests the following:
-- Compression rate
-  - LZSS and LZW achieve consistently lower rates than Huffman
-  - LZW outperforms the others in text, often getting below 50%
-  - LZSS outperforms the others in images, often getting close to 60%
-  - All three fail with pseudorandom byte streams, resulting in compression
-    rates > 1.00; LZW in particular fails spectacularly, bloating the data to
-    1.4~1.5x its original size
-- Compression speed
-  - Huffman is by far the fastest
-  - LZW comes in second, working on average three times slower than Huffman
-  - LZSS is clearly slowest, taking on average 7~8 times longer(!) than Huffman
-- Decompression speed
-  - Curiously, LZSS performs fastest (in stark contrast to compression speeds)
-  - Huffman follows close on the heels of LZSS, at ~1.5 its speed
-  - LZW performs on average 4x slower than LZSS
+Tests were run with different file sizes, from 64kB to 1,024kB, in 64kB steps.
+When necessary, the input text and image files were simply concatenated with
+themselves to reach target file sizes: for instance, the thesis is only 243kB,
+so you'd "copy-paste" it twice over, and then trim at 512kB to get a text file
+of appropriate size.
 
-More thorough analysis will be done later, backed up with charts. Before doing
-so, perhaps the algorithms (especially LZSS and LZW) can still be optimized to
-some extent. I've already managed to speed up LZSS compression 100x from the
-initial brute-force version, but clearly something is still amiss. Also LZW is
-now working 10-20x faster than the first version, but there's still room for
-improvement, I believe.
+Tests were run 20 times, for a total of 2,880 observations on compression and
+decompression speed, rate, and fidelity. The following summary looks at the
+(geometric) mean of these results, weighted by file size.
 
-Generally, a somewhat disheartening observation is that most file types cannot
-be packed any further by wackpackr — quite the opposite, wackpackr actually
-makes most files **larger**(!). Basically, only "raw" file types can be packed.
+Speed:
+- Huffman is very stable, regardless of whether compressing or decompressing, or
+  what kind of data is being processed. In all scenarios, it can push ~25MB per
+  second, which beats LZW and LZSS by a long shot especially in compression.
+- LZSS is baffling. It is by far the slowest in compression (~3MB/s) but, in
+  stark contrast, by far the fastest in decompression (~40MB/s). It unpacks
+  files over ten times faster than it packs them(?!) The difference has to boil
+  down to the longest pattern search — despite several rounds of optimisation, I
+  must be doing something wrong there still...
+- LZW falls in between Huffman and LZSS in compression speed, and takes last
+  place in decompression. Like Huffman, the differences between compression vs.
+  decompression are limited. Out of the three, LZW appears to be the most
+  volatile to data type: for example, it can handle image data three times
+  faster than a randomized byte stream.
+
+![Figure 2](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig02.png)
+![Figure 3](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig03.png)
+
+Compression efficiency:
+- Huffman is fast, but does not achieve as low compression rates as LZW and LZSS.
+- LZW handles text better than LZSS, while LZSS handles images better than LZW.
+- All three fail with random data. LZW and LZSS not only fail, but they do so
+  miserably, resulting actually in larger file sizes than the input data.
+- The above point only reveals that my implementations do not audit their own
+  performance in any way, but keep on "compressing" even if they cannot reach a
+  smaller file size.
+
+![Figure 4](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig04.png)
+
+Let's still look at the key metrics — compression throughput and rate — on a
+scatter plot. Here, the rate is mapped as inverse, so that the bigger the value
+on each axis, the better.
+
+![Figure 1](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig01.png)
+
+Based on these tests, it should be safe to conclude that all compressors work
+in linear time with respect to input size. Some are obviously slower, some
+faster, but the difference is always a constant, at most on the order of 10~15.
+This is the expected outcome from slapdash complexity analysis.
+
+## Performance testing, round #2
+
+COMING SOON

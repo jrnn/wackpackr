@@ -29,9 +29,11 @@ general context.
 [wackpackr.web](https://github.com/jrnn/wackpackr/tree/master/src/main/java/wackpackr/web)
 is there only to provide a web-based UI — utterly irrelevant.
 
+___
+
 ### A few words on the compressors
 
-##### Huffman [REWRITE]
+#### Huffman [REWRITE]
 
 - By-the-book implementation, that roughly does the following things when
   compressing:
@@ -60,10 +62,10 @@ is there only to provide a web-based UI — utterly irrelevant.
 
 [INTRODUCE AND LINK THE RELEVANT CLASSES HERE?]
 
-##### LZSS (Lempel–Ziv–Storer–Szymanski)
+#### LZSS (Lempel–Ziv–Storer–Szymanski)
 
-LZSS achieves compression by replacing recurring patterns in the data with back-
-references to an earlier occurrence. A back-reference simply is a pair of
+LZSS achieves compression by replacing recurring patterns in the data with
+back-references to an earlier occurrence. A back-reference simply is a pair of
 numbers: *offset* and *length*. Offset tells how many bytes to backtrack in the
 data, and length tells how many bytes to read from that position. In other
 words, a back-reference states that "the next *length* bytes are the same ones
@@ -130,7 +132,7 @@ handle both compression and decompression in `~O(n)` time.
 
 [INTRODUCE AND LINK THE RELEVANT CLASSES HERE?]
 
-##### LZW (Lempel–Ziv–Welch)
+#### LZW (Lempel–Ziv–Welch)
 
 The basic idea is the same as LZSS: recurring byte sequences are replaced with
 shorthands. However, whereas LZSS uses back-references to preceding data, LZW
@@ -189,10 +191,16 @@ This little optimisation does not compromise time complexity in any way.
 
 [INTRODUCE AND LINK THE RELEVANT CLASSES HERE?]
 
+___
+
 ### What could be done better?
 
 - BinaryIO : I have a hunch this might be or become a bottleneck. Tried to
   optimise it a couple times, but no performance improvement observed.
 - LZSS : can the longest pattern search be improved still?
+- LZSS : apply Huffman coding (adaptive?) for pointer and literal blocks for
+  improved compression rate
 - LZW : monitoring compression efficiency and "flushing" explicitly if it drops
   below certain threshold
+- LZW : instead of resetting dictionary, free up space by dumping least-used
+  entries?

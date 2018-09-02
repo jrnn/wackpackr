@@ -46,9 +46,9 @@ implemented compressors against one another.
 
 As usual, Wikipedia was the point of entry in familiarizing the subject:
 [Huffman](https://en.wikipedia.org/wiki/Huffman_coding),
-[LZ](https://en.wikipedia.org/wiki/LZ77_and_LZ78).
-[LZW](https://en.wikipedia.org/wiki/LZW)
-[LZSS](https://en.wikipedia.org/wiki/LZSS)
+[Lempel-Ziv](https://en.wikipedia.org/wiki/LZ77_and_LZ78),
+[LZW](https://en.wikipedia.org/wiki/LZW),
+[LZSS](https://en.wikipedia.org/wiki/LZSS).
 
 [This](http://ethw.org/History_of_Lossless_Data_Compression_Algorithms) was
 useful in understanding how compression algorithms are categorized and how they
