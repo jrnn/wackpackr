@@ -2,7 +2,6 @@ package wackpackr.core;
 
 import java.io.EOFException;
 import java.io.IOException;
-import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.ByteString;
 
@@ -16,11 +15,13 @@ import wackpackr.util.ByteString;
  */
 public class LZWCompressor implements Compressor
 {
+    private static final long LZW_TAG = 0x04092009;
+
     /**
      * Compresses given file using dynamic (variable bit size) LZW encoding.
      *
      * <p>Writes a 32-bit identifier, indicating the used compression technique, to the beginning
-     * of the compressed binary, followed by the actual data in encoded form. Closes with a pseudo-
+     * of the compressed binary, followed by the actual data in encoded form. Ends with a pseudo-
      * EoF marker (zero index), and a few 0s to ensure that the EoF bit sequence is not partially
      * cut off.</p>
      *
@@ -33,7 +34,7 @@ public class LZWCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO())
         {
-            io.write32Bits(Constants.LZW_TAG);
+            io.write32Bits(LZW_TAG);
 
             LZWDictionary dict = new LZWDictionary();
             int bitsize = 9, index = -1, newIndex;
@@ -82,7 +83,7 @@ public class LZWCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {
-            if (io.read32Bits() != Constants.LZW_TAG)
+            if (io.read32Bits() != LZW_TAG)
                 throw new IllegalArgumentException("Not a LZW compressed file");
 
             LZWDictionary dict = new LZWDictionary();

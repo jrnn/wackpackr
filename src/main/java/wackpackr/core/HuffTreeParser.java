@@ -6,7 +6,7 @@ import wackpackr.util.HuffNode;
 import wackpackr.util.MinHeap;
 
 /**
- * Helper class that handles forming and parsing of frequency-sorted binary trees needed in Huffman
+ * Helper class that handles forming and parsing of frequency-sorted prefix trees needed in Huffman
  * compression and decompression.
  *
  * @author Juho Juurinen

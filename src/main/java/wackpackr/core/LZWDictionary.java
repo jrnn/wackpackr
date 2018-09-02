@@ -9,12 +9,12 @@ import wackpackr.util.LZWNode;
  * <p>The dictionary works a bit differently depending whether encoding or decoding. When encoding,
  * the dictionary needs to be able to tell quickly whether it contains a certain byte sequence or
  * not, and what is its index. When decoding, the dictionary needs to be able to fetch byte
- * sequences quickly by their index. Due to these differences, different data structures are
- * employed in each case.</p>
+ * sequences quickly by their index. Due to these differences, different data structures are used in
+ * each case.</p>
  *
- * <p>The first case is more complex. This implementation uses a trie structure, combined with a
- * trick that treats byte sequences as "prefix index—last byte" pairs (this takes advantage of the
- * fact that when a new byte sequence is put to the dictionary, its prefix must have been put there
+ * <p>The first case is more complex. This implementation uses a prefix tree, combined with a trick
+ * that treats byte sequences as "prefix index—last byte" pairs (this takes advantage of the fact
+ * that when a new byte sequence is put to the dictionary, its prefix must have been put there
  * earlier and thus has an index). With this trick, during the encoding process, the existence of
  * byte sequences can be tested in near-constant time. Also, since a byte sequence of any length is
  * stored simply as a pair of values, memory overhead is cut significantly.</p>
@@ -29,8 +29,8 @@ import wackpackr.util.LZWNode;
  * is checked and communicated back to the encoder/decoder after each insertion.</p>
  *
  * <p>The bit size used in encoding is capped, which sets a limit for dictionary size. Whenever the
- * dictionary is full, it must be flushed to its initial state. Because this works a bit differently
- * whether encoding or decoding, monitoring dictionary size and flushing it is delegated to the
+ * dictionary is full, it must be flushed to its initial state. Because this works differently
+ * whether encoding or decoding, monitoring dictionary size and resetting it is delegated to the
  * encoder/decoder.</p>
  *
  * @author Juho Juurinen

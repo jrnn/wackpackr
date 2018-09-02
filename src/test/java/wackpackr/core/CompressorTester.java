@@ -88,7 +88,7 @@ public class CompressorTester
                     type,
                     compressor
             );
-//            System.out.println(res);
+            System.out.println(res);
 
             if (!res.isIntact())
                 return false;

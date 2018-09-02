@@ -2,7 +2,6 @@ package wackpackr.core;
 
 import java.io.EOFException;
 import java.io.IOException;
-import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 
 /**
@@ -12,6 +11,10 @@ import wackpackr.io.BinaryIO;
  */
 public class LZSSCompressor implements Compressor
 {
+    private static final long LZSS_TAG = 0x07072017;
+    private static final int THRESHOLD_LENGTH = 3;
+    private static final int BUFFER_SIZE = 15 + THRESHOLD_LENGTH;
+    private static final int PREFIX_SIZE = 4095;
     private static boolean EOF_REACHED;
     private static LZSSWindowOperator WINDOW;
 
@@ -19,7 +22,7 @@ public class LZSSCompressor implements Compressor
      * Compresses given file using LZSS encoding.
      *
      * <p>Writes a 32-bit identifier, indicating the used compression technique, to the beginning
-     * of the compressed binary, followed by the actual data in encoded form. Closes with a
+     * of the compressed binary, followed by the actual data in encoded form. Ends with a
      * nonsensical "zero-offset" pointer as a pseudo-EoF marker, plus a few 0s to ensure that the
      * EoF bit sequence is not partially cut off.</p>
      *
@@ -32,10 +35,10 @@ public class LZSSCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {
-            io.write32Bits(Constants.LZSS_TAG);
+            io.write32Bits(LZSS_TAG);
 
-            byte[] initialBuffer = io.readBytes(Constants.LZSS_BUFFER_SIZE);
-            WINDOW = new LZSSWindowOperator(initialBuffer);
+            byte[] initialBuffer = io.readBytes(BUFFER_SIZE);
+            WINDOW = new LZSSWindowOperator(BUFFER_SIZE, PREFIX_SIZE, initialBuffer);
 
             while (WINDOW.peek() != null)
                 encode(io);
@@ -69,10 +72,10 @@ public class LZSSCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {
-            if (io.read32Bits() != Constants.LZSS_TAG)
+            if (io.read32Bits() != LZSS_TAG)
                 throw new IllegalArgumentException("Not a LZSS compressed file");
 
-            WINDOW = new LZSSWindowOperator();
+            WINDOW = new LZSSWindowOperator(BUFFER_SIZE, PREFIX_SIZE);
             EOF_REACHED = false;
 
             while (!EOF_REACHED)
@@ -98,7 +101,7 @@ public class LZSSCompressor implements Compressor
         {   // pointer block
             byte[] pointer = io.readBytes(2);
             int offset = (pointer[0] << 4 | pointer[1] >> 4 & 0xF) & 0xFFF;
-            int length = (pointer[1] & 0xF) + Constants.LZSS_THRESHOLD_LENGTH;
+            int length = (pointer[1] & 0xF) + THRESHOLD_LENGTH;
 
             if (offset == 0)
                 EOF_REACHED = true;
@@ -119,7 +122,7 @@ public class LZSSCompressor implements Compressor
         int[] longestMatch = WINDOW.findLongestMatch();
         int length = longestMatch[0], offset = longestMatch[1];
 
-        if (length < Constants.LZSS_THRESHOLD_LENGTH)
+        if (length < THRESHOLD_LENGTH)
         {
             io      // literal block
                     .writeBit(false)
@@ -130,7 +133,7 @@ public class LZSSCompressor implements Compressor
             io      // pointer block
                     .writeBit(true)
                     .writeByte((byte) (offset >> 4))
-                    .writeByte((byte) (offset << 4 | (length - Constants.LZSS_THRESHOLD_LENGTH)));
+                    .writeByte((byte) (offset << 4 | (length - THRESHOLD_LENGTH)));
 
         for (int i = 0; i < length; i++)
             WINDOW.slideForward(io.readByteOrNull());

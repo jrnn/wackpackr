@@ -2,7 +2,6 @@ package wackpackr.core;
 
 import java.io.EOFException;
 import java.io.IOException;
-import wackpackr.config.Constants;
 import wackpackr.io.BinaryIO;
 import wackpackr.util.HuffNode;
 
@@ -13,6 +12,7 @@ import wackpackr.util.HuffNode;
  */
 public class HuffCompressor implements Compressor
 {
+    private static final long HUFFMAN_TAG = 0x07031986;
     private static final int EOF_INDEX = 256;
     private static boolean EOF_REACHED;
     private static final String[] CODES = new String[EOF_INDEX + 1];
@@ -20,14 +20,14 @@ public class HuffCompressor implements Compressor
     /**
      * Compresses the given file using vanilla Huffman encoding.
      *
-     * <p>Information needed for decompression is encoded to the beginning of the compressed binary.
+     * <p>Information needed for decompression is stored to the beginning of the compressed binary.
      * This header consists, in order, of:</p><ol><li>a 32-bit identifier indicating the used
      * compression technique</li><li>Huffman tree that maps prefix codes to byte values</li><li>
      * prefix code associated with the pseudo-EoF marker</li></ol>
      *
-     * <p>The header is followed by the actual data in encoded form. The compressed binary closes
-     * with the pseudo-EoF marker and, finally, a few 0s for padding — just to ensure that the EoF
-     * bit sequence is not partially cut off.</p>
+     * <p>The header is followed by the actual data in encoded form. The compressed binary ends with
+     * the pseudo-EoF marker and, finally, a few 0s for padding to ensure that the EoF bit sequence
+     * is not partially cut off.</p>
      *
      * @param bytes file to compress as byte array
      * @return compressed file as byte array
@@ -38,7 +38,7 @@ public class HuffCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO())
         {
-            io.write32Bits(Constants.HUFFMAN_TAG);
+            io.write32Bits(HUFFMAN_TAG);
 
             HuffNode root = HuffTreeParser.buildTree(bytes);
             HuffTreeParser.encodeTree(root, io);
@@ -81,7 +81,7 @@ public class HuffCompressor implements Compressor
     {
         try (BinaryIO io = new BinaryIO(bytes))
         {
-            if (io.read32Bits() != Constants.HUFFMAN_TAG)
+            if (io.read32Bits() != HUFFMAN_TAG)
                 throw new IllegalArgumentException("Not a Huffman compressed file");
 
             HuffNode root = HuffTreeParser.decodeTree(io);

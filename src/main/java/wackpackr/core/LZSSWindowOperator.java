@@ -1,6 +1,5 @@
 package wackpackr.core;
 
-import wackpackr.config.Constants;
 import wackpackr.util.ErraticHashTable;
 import wackpackr.util.SlidingWindow;
 
@@ -21,8 +20,9 @@ import wackpackr.util.SlidingWindow;
  */
 public class LZSSWindowOperator
 {
+    private final int bufferSize, prefixSize;
     private ErraticHashTable<Integer> positions;
-    private final SlidingWindow<Byte> window = new SlidingWindow<>(Constants.LZSS_WINDOW_SIZE);
+    private final SlidingWindow<Byte> window;
 
     /**
      * Constructs a new sliding window operator with a lighter configuration for decoding purposes.
@@ -31,9 +31,16 @@ public class LZSSWindowOperator
      *
      * <p>A dummy byte is inserted at head of the window, just so that the read pointer can move
      * one step ahead of the decoded stream.</p>
+     *
+     * @param bufferSize maximum number of bytes held in lookahead buffer at once
+     * @param prefixSize maximum number of bytes held in prefix at once
      */
-    public LZSSWindowOperator()
+    public LZSSWindowOperator(int bufferSize, int prefixSize)
     {
+        this.bufferSize = bufferSize;
+        this.prefixSize = prefixSize;
+        this.window = new SlidingWindow<>(bufferSize + prefixSize);
+
         window.insert(null);
     }
 
@@ -42,11 +49,20 @@ public class LZSSWindowOperator
      * memorising pattern recurrences is initialised, and the initial lookahead buffer is pushed
      * into the window.
      *
+     * Hash table size optimally is a prime number not close to any power of two, and load factor
+     * preferably is in the 0.65~0.75 range. Since there will be a maximum of ~4100 elements in the
+     * table at any one time, one good choice that meets the above conditions is 6151.
+     *
+     * @param bufferSize maximum number of bytes held in lookahead buffer at once
+     * @param prefixSize maximum number of bytes held in prefix at once
      * @param initialBuffer lookahead buffer at beginning of encoding
      */
-    public LZSSWindowOperator(byte[] initialBuffer)
+    public LZSSWindowOperator(int bufferSize, int prefixSize, byte[] initialBuffer)
     {
-        positions = new ErraticHashTable<>(Constants.LZSS_BUCKETS);
+        this.bufferSize = bufferSize;
+        this.prefixSize = prefixSize;
+        this.window = new SlidingWindow<>(bufferSize + prefixSize);
+        this.positions = new ErraticHashTable<>(6151);
 
         for (byte b : initialBuffer)
             window.insert(b);
@@ -54,8 +70,8 @@ public class LZSSWindowOperator
 
     /**
      * Reads backwards through current prefix window, searching for longest partial or complete
-     * match of current buffer. Returns the length and offset (relative to sliding window cursor
-     * position) of the best match, or [0, 0] if no matches were found.
+     * match of current lookahead buffer. Returns the length and offset, relative to sliding window
+     * cursor position, of the best match; or [0, 0] if no matches are found.
      *
      * <p>In case of ties, the match with least distance from buffer is returned. Also, if a
      * complete match is found, the search terminates since there is no point in looking any
@@ -75,7 +91,7 @@ public class LZSSWindowOperator
             {
                 int length = 0, offset = window.cursor() - (int) p;
 
-                for (; length < Constants.LZSS_BUFFER_SIZE; length++)
+                for (; length < bufferSize; length++)
                     if (window.read(length) == null
                             || !window.read(length - offset).equals(window.read(length)))
                         break;
@@ -85,7 +101,7 @@ public class LZSSWindowOperator
                     maxLength = length;
                     maxOffset = offset;
                 }
-                if (maxLength == Constants.LZSS_BUFFER_SIZE)
+                if (maxLength == bufferSize)
                     break;
             }
 
@@ -115,8 +131,8 @@ public class LZSSWindowOperator
         if (out != null)
             positions.get(
                     out,
-                    window.read(-Constants.LZSS_PREFIX_SIZE + 1),
-                    window.read(-Constants.LZSS_PREFIX_SIZE + 2)
+                    window.read(-prefixSize + 1),
+                    window.read(-prefixSize + 2)
             ).removeFirst();
 
         if (window.read(2) != null)
