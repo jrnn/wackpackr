@@ -51,3 +51,4 @@
 | 30.8. | 3 | 101 | LZW trie unit testing |
 | 1.9. | 2 | 103 | sharpening documentation |
 | 1.9. | 1 | 104 | bringing UI up to speed |
+| 2.9. | 5 | 109 | performance testing |
