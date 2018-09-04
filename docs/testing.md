@@ -7,10 +7,12 @@ Test coverage
 See [coveralls](https://coveralls.io/github/jrnn/wackpackr?branch=master) for
 latest coverage reports.
 
-Classes in wackpackr.io and wackpackr.util packages have extensive unit testing,
-with near-100% coverage.
+Classes in [io](https://github.com/jrnn/wackpackr/tree/master/src/test/java/wackpackr/io)
+and [util](https://github.com/jrnn/wackpackr/tree/master/src/test/java/wackpackr/util)
+packages have extensive unit testing, with near-100% coverage.
 
-The core compressor classes are also quite well covered. The test suite, besides
+The [core](https://github.com/jrnn/wackpackr/tree/master/src/test/java/wackpackr/core)
+compressor classes are also quite well covered. The test suite, besides
 must-have functionality tests, also does several rounds of compressing and
 decompressing in turn with random, textual, and image data of various sizes.
 These tests, however, only check that the data decompresses to its initial form,
@@ -24,7 +26,10 @@ There is and will be no automatic testing for anything web/UI related, as these
 are just nice-to-have features for convenience. This unfortunately means that
 100% coverage will not be reached. Boo-hoo.
 
-## Performance testing, round #1
+___
+
+Performance testing, round #1
+-----------------------------
 
 Each of the three compressors was, in turn, tested with three kinds of data:
 (1) text, (2) image, and (3) random. For text, I used [my old M.A. thesis](https://github.com/jrnn/wackpackr/blob/master/src/test/java/wackpackr/test.txt)
@@ -72,7 +77,7 @@ and decompression speed, rate, and fidelity. The following summary looks at the
 - Huffman is fast, but does not achieve as low compression rates as LZW and LZSS.
 - LZW handles text better than LZSS, while LZSS handles images better than LZW.
 - All three fail with random data. LZW and LZSS not only fail, but they do so
-  miserably, resulting actually in larger file sizes than the input data.
+  miserably, resulting actually in notably larger file sizes than the input data.
 - The above point only reveals that my implementations do not audit their own
   performance in any way, but keep on "compressing" even if they cannot reach a
   smaller file size.
@@ -89,9 +94,11 @@ bigger the value, the better.
 
 Based on these tests, it should be safe to conclude that all compressors work
 in linear time with respect to input size. Some are obviously slower, some
-faster, but the difference is always a constant, at most on the order of 10~15.
+faster, but the difference is always a constant, at most on the order of 10~20.
 This is the expected outcome from slapdash complexity analysis done in the
 [implementation notes](https://github.com/jrnn/wackpackr/blob/master/docs/implementation.md).
+
+___
 
 Performance testing, round #2
 -----------------------------
@@ -114,11 +121,11 @@ and decompression speed, rate, and fidelity. The following summary looks at the
 #### Speed
 
 The same findings as in round #1 appear to apply here equally:
-- Huffman is stable, and takes the cake in compression speed
-- LZW is quite solid, typically running at half the speed of Huffman
+- Huffman is stable, and takes the cake in compression speed.
+- LZW is quite solid, typically running at half the speed of Huffman.
 - LZSS has a bipolar disorder which, in fact, is even more pronounced with these
-  data: for instance, LZSS decompresses the Calgary corpus **27 times** faster
-  than it packs it !!!
+  data: for instance, LZSS unpacks the Calgary corpus **27 times** faster than
+  packing it !!!
 
 ![Figure 6](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig06.png)
 ![Figure 7](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig07.png)
@@ -133,23 +140,44 @@ Again, the results seem to confirm what was said earlier:
   seen (like with random bytestreams earlier)
 
 ![Figure 8](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig08.png)
-
-Scatter plot:
-
 ![Figure 5](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig05.png)
 
-One aspect that was overlooked in previously is how stable performance is over
+One aspect that was overlooked previously is how stable performance is over
 several rounds of compression and decompression. A couple of observations on
 this:
 - The compressors are deterministic. If you compress a file 100 times, you get
-  the exact same output every single time.
+  the *exact* same output every single time.
 - Compression and decompression time varies. If you pack and unpack a file 100
-  times, you're unlikely to get the exact same time more than once.
+  times, you'll clock a different time on each run.
 - This variance can be quantified to some extent from the test results, simply
   by looking at the standard deviation. The following charts plot the familiar
   average throughputs by compressor and corpus, and paint the average +/-
-  standard deviation range for each. Clearly, variance is quite limited, i.e.
-  we can expect compressor performance to be more or less the same on each run.
+  standard deviation range for each.
+- Clearly, variance is quite limited, i.e. we can expect compressor performance
+  to be more or less the same on each run.
 
 ![Figure 9](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig09.png)
 ![Figure 10](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig10.png)
+
+___
+
+So how does wackpackr compare?
+------------------------------
+
+Regrettably I did not have time to look up good benchmark data, but based on a
+couple of quick sources ([1](https://tukaani.org/lzma/benchmarks.html), [2](https://bbengfort.github.io/observations/2017/06/07/compression-benchmarks.html)),
+the following tentative observations can be made:
+- The more recent of the two benchmarks suggests that, on a fairly "normal"
+  laptop (Macbook Pro), commercial bzip2 and gzip applications compress at
+  10~15MB/s, and decompress at 30~120MB/s.
+- If these data points are reliable, then my implementations are not as shoddy
+  as I expected in compression speed. Huffman and LZW can operate at comparable
+  figures. My decompression speeds, though, are clearly lacking. Only LZSS can
+  do more than 30MB/s.
+- The benchmarks suggest that bzip2 and gzip routinely reach 25—33% compression
+  rates with "real" data (e.g. the mishmash of files that come with a Linux
+  distro), and even go way below 20% with textual data.
+- My implementations rarely come even close to these numbers. But this is hardly
+  a surprise. Also, the underlying techniques are not the same: bzip2 apparently
+  is based on Burrows–Wheeler, and gzip is based on DEFLATE (which, to
+  oversimplify, is LZSS + Huffman with a whole lot of optimisations).
