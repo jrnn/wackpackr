@@ -228,15 +228,20 @@ ___
 ### What could be done better?
 
 [BinaryIO.java](https://github.com/jrnn/wackpackr/blob/master/src/main/java/wackpackr/io/BinaryIO.java):
+
 - I have a feeling that this might be a bottleneck. If so, it affects all
   compressors equally. I tried to optimise the I/O operations a couple of times,
   especially in the cases when a bit sequence is read or written "over" the byte
   boundaries in the underlying `ByteArrayI/O`, but did not observe any speed
   improvement.
+
 [Huffman](https://github.com/jrnn/wackpackr/blob/master/src/main/java/wackpackr/core/HuffCompressor.java):
+
 - I'm quite happy with this one and haven't noted any improvement ideas,
   although there probably are dozens of things that could be done better.
+
 [LZSS](https://github.com/jrnn/wackpackr/blob/master/src/main/java/wackpackr/core/LZSSCompressor.java):
+
 - LZSS ticks me off the most. LZSS compression speed is remarkably slow compared
   to the others. Considering how fast the decompression works, it must boil down
   to the longest match search. Despite going through a few incremental tweaks
@@ -246,13 +251,17 @@ ___
   still be tried. For one, instead of encoding pointer and literal blocks at a
   fixed width (1 vs. 2 bytes), could use e.g. Huffman encoding to trim out some
   bits here and there.
+
 [LZW](https://github.com/jrnn/wackpackr/blob/master/src/main/java/wackpackr/core/LZWCompressor.java):
+
 - I'm fairly happy with how this turned out. Nonetheless...
 - Could monitor compression efficiency and explicitly reset the dictionary if
   the running ratio drops below certain threshold.
 - Instead of resetting the dictionary, one option would be to dump least-used
   entries one by one. This allegedly can improve compression efficiency.
+
 Other:
+
 - There likely are also no small number of potential improvements on the data
   structures, but I haven't jotted anything down, so I wouldn't even know where
   to begin.

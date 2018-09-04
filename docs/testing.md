@@ -159,6 +159,13 @@ this:
 ![Figure 9](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig09.png)
 ![Figure 10](https://github.com/jrnn/wackpackr/blob/master/docs/figures/fig10.png)
 
+#### Conclusions?
+
+The second round of testing confirms what was concluded after the first round.
+All compressors tick in `~O(n)` time, and perform in a similar fashion with
+typical compression benchmark data as with the more limited and questionable
+data used in the first testing round.
+
 ___
 
 So how does wackpackr compare?
@@ -169,7 +176,7 @@ couple of quick sources ([1](https://tukaani.org/lzma/benchmarks.html), [2](http
 the following tentative observations can be made:
 - The more recent of the two benchmarks suggests that, on a fairly "normal"
   laptop (Macbook Pro), commercial bzip2 and gzip applications compress at
-  10~15MB/s, and decompress at 30~120MB/s.
+  10—15MB/s, and decompress at 30—120MB/s.
 - If these data points are reliable, then my implementations are not as shoddy
   as I expected in compression speed. Huffman and LZW can operate at comparable
   figures. My decompression speeds, though, are clearly lacking. Only LZSS can
