@@ -174,17 +174,19 @@ So how does wackpackr compare?
 Regrettably I did not have time to look up good benchmark data, but based on a
 couple of quick sources ([1](https://tukaani.org/lzma/benchmarks.html), [2](https://bbengfort.github.io/observations/2017/06/07/compression-benchmarks.html)),
 the following tentative observations can be made:
-- The more recent of the two benchmarks suggests that, on a fairly "normal"
-  laptop (Macbook Pro), commercial bzip2 and gzip applications compress at
-  10—15MB/s, and decompress at 30—120MB/s.
-- If these data points are reliable, then my implementations are not as shoddy
-  as I expected in compression speed. Huffman and LZW can operate at comparable
-  figures. My decompression speeds, though, are clearly lacking. Only LZSS can
-  do more than 30MB/s.
-- The benchmarks suggest that bzip2 and gzip routinely reach 25—33% compression
-  rates with "real" data (e.g. the mishmash of files that come with a Linux
-  distro), and even go way below 20% with textual data.
-- My implementations rarely come even close to these numbers. But this is hardly
-  a surprise. Also, the underlying techniques are not the same: bzip2 apparently
-  is based on Burrows–Wheeler, and gzip is based on DEFLATE (which, to
-  oversimplify, is LZSS + Huffman with a whole lot of optimisations).
+- Throughput
+  - The more recent of the two benchmarks suggests that, on a fairly "normal"
+    laptop (Macbook Pro), commercial bzip2 and gzip applications compress at
+    10—15MB/s, and decompress at 30—120MB/s.
+  - If these data points are reliable, then my implementations are not as shoddy
+    as I expected in compression speed. Huffman and LZW achieve comparable
+    figures. My decompression speeds, though, are clearly lacking. Only LZSS can
+    do more than 30MB/s.
+  - Then again, **I have no idea whether this is a representative benchmark or
+    not**.
+- Compression rate
+  - The benchmarks suggest that bzip2 and gzip routinely reach 25—33% rates with
+    "real" data (a mishmash of all kinds of files), and even go way below 20%
+    with textual data.
+  - My implementations rarely come even close to these numbers. But this is
+    hardly a surprise.
