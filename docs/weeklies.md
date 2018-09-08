@@ -9,7 +9,7 @@
 #### Next in line
 
 - Extending and refining Huffman implementation
-- Replacing java.util.PriorityQueue with a DYI data structure
+- Replacing java.util.PriorityQueue with a DIY data structure
 - Unit testing
 
 #### Issues and questions
@@ -44,7 +44,7 @@
     operate below the byte level: putting together an "add-on" tool that can do
     I/O on binary level was a very instructive experience
 - Would like to check if I'm at this point using something from standard library
-  that should be replaced with DYI implementations. Are the following legal?
+  that should be replaced with DIY implementations. Are the following legal?
   - java.io.ByteArrayInputStream
   - java.io.ByteArrayOutputStream
   - java.util.Arrays
@@ -88,7 +88,7 @@
 
 #### Next in line
 
-- Finalizing LZW and replacing java.util.TreeMap with something DYI
+- Finalizing LZW and replacing java.util.TreeMap with something DIY
 - Doing performance testing(?)
 - Making sure there are no blind spots in unit testing
 
@@ -113,7 +113,7 @@
 
 #### Next in line
 
-- I'd like to think that core functionality and DYI data structures are done
+- I'd like to think that core functionality and DIY data structures are done
   now? So, just wrapping up loose ends
 - In particular, performance testing and analysis of the results
 
@@ -127,3 +127,19 @@
 This week was real busy at work, couldn't find the time to do anything. With the
 remaining time, will try to (1) do performance testing, (2) update documentation,
 (3) patch unit tests.
+
+## Week #7
+
+#### Main activities
+
+- Performance testing
+- Documentation
+
+#### Last words
+
+This concludes the project. I'm glad for picking this topic, it was captivating,
+instructive, and just the right measure of challenge. Regrettably I ran out of
+steam (and time) towards the end, leaving some loose ends (e.g. no unit tests
+for compressor helper classes). Also, it would've been interesting to try to
+fine-tune performance further, or even go for one or two more techniques, such
+as adaptive Huffman, Deflate, or LZMA. But, it is what it is.
